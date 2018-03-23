@@ -20,6 +20,16 @@ def get_train_args():
                         help='Number of sweeps over the dataset to train')
     parser.add_argument('--gpu', '-g', type=int, default=-1,
                         help='GPU ID (negative value indicates CPU)')
+    parser.add_argument('--pshare_decoder_param', dest='share_decoder_param',
+                        action='store_true',
+                        help='partially share the decoder params for the models')
+    parser.set_defaults(pshare_decoder_param=False)
+    parser.add_argument('--pshare_encoder_param', dest='share_encoder_param',
+                        action='store_true',
+                        help='partially share the encoder params for the models')
+    parser.set_defaults(pshare_encoder_param=False)
+    parser.add_argument('--lang1', type=str)
+    parser.add_argument('--lang2', type=str)
 
     # Model Options
     parser.add_argument('--n_units', '-u', type=int, default=512,
