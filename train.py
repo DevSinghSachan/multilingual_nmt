@@ -14,6 +14,7 @@ from tqdm import tqdm
 
 import evaluator
 import net
+from models import MultiTaskNMT
 import optimizer as optim
 from torchtext import data
 import utils
@@ -112,10 +113,11 @@ def main():
     with open(os.path.join(args.input, args.data + '.vocab.pickle'), 'rb') as f:
         id2w = pickle.load(f)
 
+    args.id2w = id2w
     args.n_vocab = len(id2w)
 
     # Define Model
-    model = net.Transformer(args)
+    model = MultiTaskNMT(args)
 
     tally_parameters(model)
     if args.gpu >= 0:
