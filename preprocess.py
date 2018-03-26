@@ -73,7 +73,8 @@ def make_dataset(path, w2id, tok=False):
         token_count += array.size
         unknown_count += (array == Vocab_Pad.UNK).sum()
     print('# of tokens: %d' % token_count)
-    print('# of unknown: %d (%.2f %%)' % (unknown_count, 100. * unknown_count / token_count))
+    print('# of unknown: %d (%.2f %%)' % (unknown_count,
+                                          100. * unknown_count / token_count))
     return dataset
 
 
@@ -103,7 +104,8 @@ if __name__ == "__main__":
     source_data = make_dataset(source_path, w2id, args.tok)
     target_data = make_dataset(target_path, w2id, args.tok)
     assert len(source_data) == len(target_data)
-    train_data = [(s, t) for s, t in six.moves.zip(source_data, target_data) if 0 < len(s) < args.max_seq_length
+    train_data = [(s, t) for s, t in six.moves.zip(source_data, target_data)
+                  if 0 < len(s) < args.max_seq_length
                   and 0 < len(t) < args.max_seq_length]
 
     # Display corpus statistics
@@ -117,7 +119,8 @@ if __name__ == "__main__":
     target_path = os.path.join(args.input, args.target_valid)
     target_data = make_dataset(target_path, w2id, args.tok)
     assert len(source_data) == len(target_data)
-    valid_data = [(s, t) for s, t in six.moves.zip(source_data, target_data) if 0 < len(s) and 0 < len(t)]
+    valid_data = [(s, t) for s, t in six.moves.zip(source_data, target_data)
+                  if 0 < len(s) and 0 < len(t)]
 
     # Test Dataset
     source_path = os.path.join(args.input, args.source_test)
@@ -125,15 +128,22 @@ if __name__ == "__main__":
     target_path = os.path.realpath(os.path.join(args.input, args.target_test))
     target_data = make_dataset(target_path, w2id, args.tok)
     assert len(source_data) == len(target_data)
-    test_data = [(s, t) for s, t in six.moves.zip(source_data, target_data) if 0 < len(s) and 0 < len(t)]
+    test_data = [(s, t) for s, t in six.moves.zip(source_data, target_data)
+                 if 0 < len(s) and 0 < len(t)]
 
     id2w = {i: w for w, i in w2id.items()}
 
     # Save the dataset to numpy files
-    np.save(os.path.join(args.input, args.save_data + '.train.npy'), train_data)
-    np.save(os.path.join(args.input, args.save_data + '.valid.npy'), valid_data)
-    np.save(os.path.join(args.input, args.save_data + '.test.npy'), test_data)
+    np.save(os.path.join(args.input, args.save_data + '.train.npy'),
+            train_data)
+    np.save(os.path.join(args.input, args.save_data + '.valid.npy'),
+            valid_data)
+    np.save(os.path.join(args.input, args.save_data + '.test.npy'),
+            test_data)
 
     # Save the vocab in json
-    with open(os.path.join(args.input, args.save_data + '.vocab.pickle'), 'wb') as f:
-        pickle.dump(id2w, f, protocol=pickle.HIGHEST_PROTOCOL)
+    with open(os.path.join(args.input,
+                           args.save_data + '.vocab.pickle'), 'wb') as f:
+        pickle.dump(id2w,
+                    f,
+                    protocol=pickle.HIGHEST_PROTOCOL)
