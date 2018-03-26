@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 from models import Transformer
+import utils
 
 
 def find_key_from_val(dict_, value):
@@ -49,12 +50,22 @@ class MultiTaskNMT(nn.Module):
     def forward(self, *args):
         # Identify the row indexes corresponding to lang1 and lang2
         lang1_input = index_select(self.lang1, args)
-        loss1, stat = self.model1(*lang1_input)
+        loss1, stats1 = self.model1(*lang1_input)
 
         lang2_input = index_select(self.lang2, args)
-        loss2, stat = self.model2(*lang2_input)
+        loss2, stats2 = self.model2(*lang2_input)
 
-        loss = loss1 + loss2
+        n_total = stats1.n_words + stats2.n_words
+        n_correct = stats1.n_correct + stats2.n_correct
+
+        loss = ((loss1 * stats1.n_words) + (loss2 * stats2.n_words))/ n_total
+        stats = utils.Statistics(loss=loss.data.cpu() * n_total,
+                                 n_correct=n_correct,
+                                 n_words=n_total)
+        return loss, stats
+
+    # def translate(self):
+
 
 
 

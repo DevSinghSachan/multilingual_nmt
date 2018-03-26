@@ -8,8 +8,21 @@ import utils
 import preprocess
 
 
+def where(cond, x_1, x_2):
+    """
+    https://discuss.pytorch.org/t/how-can-i-do-the-operation-the-same-as-np-where/1329/9
+    :param cond:
+    :param x_1:
+    :param x_2:
+    :return:
+    """
+    cond = cond.type_as(x_1)
+    return (cond * x_1) + ((1 - cond) * x_2)
+
+
 class PolynomialNormalization(object):
     """Dividing by the length (raised to some power (default 0.6))"""
+
     def __init__(self, alpha=0.6, apply_during_search=True):
         self.alpha = alpha
         self.apply_during_search = apply_during_search
@@ -48,20 +61,25 @@ def update_beam_state(outs, total_score, topk, topk_score, eos_id, alpha, x_bloc
         normalized_total_score = obj.normalize_partial(total_score[:, None],
                                                        topk_score,
                                                        outs.size()[1])
-        # total_score = torch.where(Variable(is_end),
-        #                           Variable(total_score[:, None] + bias),
-        #                           Variable(total_score[:, None] + topk_score))
 
-        total_score = torch.where(Variable(is_end, requires_grad=False),
-                                  Variable(total_score[:, None] + bias, requires_grad=False),
-                                  Variable(normalized_total_score, requires_grad=False))
+        # Use torch.where in v0.4
+        total_score = where(Variable(is_end,
+                                     requires_grad=False),
+                            Variable(total_score[:, None] + bias,
+                                     requires_grad=False),
+                            Variable(normalized_total_score,
+                                     requires_grad=False))
 
         total_score = total_score.data
         assert (torch.max(total_score) < 0.)
 
-        topk = torch.where(Variable(is_end, requires_grad=False),
-                           Variable(torch.LongTensor([eos_id]).type(utils.LONG_TYPE), requires_grad=False),
-                           Variable(topk, requires_grad=False))  # this is not required
+        # Use torch.where in v0.4
+        topk = where(Variable(is_end,
+                              requires_grad=False),
+                     Variable(torch.LongTensor([eos_id]).type(utils.LONG_TYPE),
+                              requires_grad=False),
+                     Variable(topk,
+                              requires_grad=False))  # this is not required
         topk = topk.data
 
     total_score = total_score.view((prev_full // prev_k, prev_k * k))
@@ -119,6 +137,7 @@ class BeamSearch(object):
     def generate_output(self, model, x_block):
         x_block = utils.source_pad_concat_convert(x_block, device=None)
         batchsize, x_length = x_block.shape
+        # self.max_decode_length = x_length + 50
 
         x_block = Variable(torch.LongTensor(x_block).type(utils.LONG_TYPE), requires_grad=False)
         bos_array = np.array([[preprocess.Vocab_Pad.BOS]] * batchsize, 'i')
@@ -148,6 +167,53 @@ class BeamSearch(object):
             y_block, x_block, z_blocks = Variable(outs), Variable(x_block), Variable(z_blocks)
 
             if torch.max(outs == preprocess.Vocab_Pad.EOS, 1)[0].sum() == outs.shape[0]:
-                break # all cands meet eos, end the loop
+                break  # all cands meet eos, end the loop
         result = finish_beam(outs[:, 1:], total_score, batchsize, preprocess.Vocab_Pad.EOS)
         return result
+
+
+class GreedySearch(object):
+    def __init__(self, max_len=50):
+        self.max_decode_length = max_len
+
+    def generate_output(self, model, x_block):
+        x_block = utils.source_pad_concat_convert(x_block, device=None)
+        batch, x_length = x_block.shape
+        # self.max_decode_length = x_length + 50
+        # bos
+        y_block = np.full((batch, 1), preprocess.Vocab_Pad.BOS,
+                          dtype=x_block.dtype)
+        eos_flags = np.zeros((batch,), dtype=x_block.dtype)
+
+        x_block = Variable(torch.LongTensor(x_block).type(utils.LONG_TYPE),
+                           requires_grad=False)
+        y_block = Variable(torch.LongTensor(y_block).type(utils.LONG_TYPE),
+                           requires_grad=False)
+
+        result = []
+        z_blocks = None
+        for i in range(self.max_decode_length):
+            log_prob_tail, z_blocks = model(x_block,
+                                            y_block,
+                                            y_out_block=None,
+                                            get_prediction=True,
+                                            z_blocks=z_blocks)
+            _, ys = torch.max(log_prob_tail, dim=1)
+            y_block = torch.cat([y_block.detach(), ys[:, None]], dim=1)
+            ys = ys.data.cpu().numpy()
+            result.append(ys)
+            eos_flags += (ys == preprocess.Vocab_Pad.EOS)
+            if np.all(eos_flags):
+                break
+
+        result = np.stack(result).T
+        # Remove EOS tags
+        outs = []
+        for y in result:
+            inds = np.argwhere(y == preprocess.Vocab_Pad.EOS)
+            if len(inds) > 0:
+                y = y[:inds[0, 0]]
+            if len(y) == 0:
+                y = np.array([1], 'i')
+            outs.append(y)
+        return outs
