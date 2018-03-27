@@ -139,7 +139,7 @@ class BeamSearch(object):
         batchsize, x_length = x_block.shape
         # self.max_decode_length = x_length + 50
 
-        x_block = Variable(torch.LongTensor(x_block).type(utils.LONG_TYPE), requires_grad=False)
+        # x_block = Variable(torch.LongTensor(x_block).type(utils.LONG_TYPE), requires_grad=False)
         bos_array = np.array([[preprocess.Vocab_Pad.BOS]] * batchsize, 'i')
         y_block = Variable(torch.LongTensor(bos_array).type(utils.LONG_TYPE), requires_grad=False)
 
@@ -185,8 +185,8 @@ class GreedySearch(object):
                           dtype=x_block.dtype)
         eos_flags = np.zeros((batch,), dtype=x_block.dtype)
 
-        x_block = Variable(torch.LongTensor(x_block).type(utils.LONG_TYPE),
-                           requires_grad=False)
+        #x_block = Variable(torch.LongTensor(x_block).type(utils.LONG_TYPE),
+        #                   requires_grad=False)
         y_block = Variable(torch.LongTensor(y_block).type(utils.LONG_TYPE),
                            requires_grad=False)
 
