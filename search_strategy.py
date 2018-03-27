@@ -135,7 +135,7 @@ class BeamSearch(object):
         self.alpha = alpha
 
     def generate_output(self, model, x_block):
-        x_block = utils.source_pad_concat_convert(x_block, device=None)
+        # x_block = utils.source_pad_concat_convert(x_block, device=None)
         batchsize, x_length = x_block.shape
         # self.max_decode_length = x_length + 50
 
@@ -177,7 +177,7 @@ class GreedySearch(object):
         self.max_decode_length = max_len
 
     def generate_output(self, model, x_block):
-        x_block = utils.source_pad_concat_convert(x_block, device=None)
+        # x_block = utils.source_pad_concat_convert(x_block, device=None)
         batch, x_length = x_block.shape
         # self.max_decode_length = x_length + 50
         # bos
