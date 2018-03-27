@@ -11,6 +11,9 @@ def get_train_args():
     parser.add_argument('--report_every', type=int, default=50,
                         help='Print stats at this interval')
 
+    parser.add_argument('--model', type=str, default='Transformer',
+                        help='Model Type to train (Trasformer / MultiTaskNMT)')
+
     # Mulltilingual Options
     parser.add_argument('--pshare_decoder_param', dest='share_decoder_param',
                         action='store_true',

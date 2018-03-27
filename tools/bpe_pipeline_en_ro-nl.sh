@@ -6,22 +6,22 @@ export PATH=$PATH:$TF/bin
 #======= EXPERIMENT SETUP ======
 
 # update these variables
-NAME="run_en_de-nl"
+NAME="run_en_ro-nl"
 OUT="temp/$NAME"
 
-DATA=${TF}"/data/en_de-nl"
+DATA=${TF}"/data/en_ro-nl"
 TRAIN_SRC=$DATA/train.en
-TRAIN_TGT=$DATA/train.de-nl
-TEST_SRC=$DATA/test.en
-TEST_TGT=$DATA/test.de-nl
-VALID_SRC=$DATA/dev.en
-VALID_TGT=$DATA/dev.de-nl
+TRAIN_TGT=$DATA/train.ro-nl
+TEST_SRC=$DATA/dev.en
+TEST_TGT=$DATA/dev.ro-nl
+VALID_SRC=$DATA/test.en
+VALID_TGT=$DATA/test.ro-nl
 
+BPE="src+tgt" # src, tgt, src+tgt
 BPE_OPS=16000
-GPUARG=-1
+GPUARG="0"
 
 #====== EXPERIMENT BEGIN ======
-
 
 echo "Output dir = $OUT"
 [ -d $OUT ] || mkdir -p $OUT
@@ -31,6 +31,7 @@ echo "Output dir = $OUT"
 
 
 echo "Step 1a: Preprocess inputs"
+
 
 echo "Learning BPE on source and target combined"
 cat ${TRAIN_SRC} ${TRAIN_TGT} | learn_bpe -s ${BPE_OPS} > $OUT/data/bpe-codes.${BPE_OPS}
@@ -47,6 +48,7 @@ apply_bpe -c $OUT/data/bpe-codes.${BPE_OPS} <  $VALID_TGT > $OUT/data/valid.tgt
 cp $TEST_TGT $OUT/data/test.tgt
 
 
+#: <<EOF
 echo "Step 1b: Preprocess"
 python ${TF}/preprocess.py -i ${OUT}/data \
       -s-train train.src \
@@ -57,6 +59,7 @@ python ${TF}/preprocess.py -i ${OUT}/data \
       -t-test test.tgt \
       --save_data processed
 
+
 echo "Step 2: Train"
 CMD="python $TF/train.py -i $OUT/data --data processed \
 --model_file $OUT/models/model_$NAME.ckpt --best_model_file $OUT/models/model_best_$NAME.ckpt \
@@ -64,11 +67,12 @@ CMD="python $TF/train.py -i $OUT/data --data processed \
 --layers 6 --multi_heads 8 --gpu $GPUARG \
 --dev_hyp $OUT/test/valid.out --test_hyp $OUT/test/test.out \
 --model MultiTaskNMT --metric bleu --wbatchsize 3000 \
---lang1 __de__ --lang2 __nl__ \
+--lang1 __ro__ --lang2 __nl__ \
 --pshare_decoder_param"
 
 echo "Training command :: $CMD"
 eval "$CMD"
+
 
 # select a model with high accuracy and low perplexity
 model=$OUT/models/model_$NAME.ckpt
