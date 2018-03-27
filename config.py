@@ -15,11 +15,11 @@ def get_train_args():
                         help='Model Type to train (Trasformer / MultiTaskNMT)')
 
     # Mulltilingual Options
-    parser.add_argument('--pshare_decoder_param', dest='share_decoder_param',
+    parser.add_argument('--pshare_decoder_param', dest='pshare_decoder_param',
                         action='store_true',
                         help='partially share the decoder params for the models')
     parser.set_defaults(pshare_decoder_param=False)
-    parser.add_argument('--pshare_encoder_param', dest='share_encoder_param',
+    parser.add_argument('--pshare_encoder_param', dest='pshare_encoder_param',
                         action='store_true',
                         help='partially share the encoder params for the models')
     parser.set_defaults(pshare_encoder_param=False)

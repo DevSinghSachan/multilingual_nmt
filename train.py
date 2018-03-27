@@ -12,6 +12,7 @@ import torch
 import pickle
 import shutil
 import math
+from torch.autograd import Variable
 
 import evaluator
 from models import MultiTaskNMT, Transformer
@@ -108,6 +109,8 @@ class CalculateBleu(object):
             references.extend(t.tolist() for t in targets)
             x_block = utils.source_pad_concat_convert(sources,
                                                       device=None)
+            x_block = Variable(torch.LongTensor(x_block).type(utils.LONG_TYPE),
+                               requires_grad=False)
             ys = self.model.translate(x_block,
                                       self.max_length,
                                       beam=self.beam_size,
@@ -219,7 +222,7 @@ def main():
                                        time_s, report_stats, args.report_every)
 
             valid_stats = utils.Statistics()
-            if (global_steps + 1) % args.eval_steps == 0:
+            if global_steps % args.eval_steps == 0:
                 dev_iter = data.iterator.pool(dev_data,
                                               args.wbatchsize,
                                               key=lambda x: (len(x[0]), len(x[1])),
