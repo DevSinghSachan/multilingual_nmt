@@ -239,7 +239,7 @@ def main():
 
                 if args.metric == "accuracy":
                     score = valid_stats.accuracy()
-                elif args.metric == "bleu" and global_steps > 8000:
+                elif args.metric == "bleu":
                     score, _ = CalculateBleu(model,
                                              dev_data,
                                              'Dev Bleu',
