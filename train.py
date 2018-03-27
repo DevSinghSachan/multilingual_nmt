@@ -186,6 +186,7 @@ def main():
     time_s = time()
 
     global_steps = 0
+    num_grad_steps = 0
     for epoch in range(args.start_epoch, args.epoch):
         random.shuffle(train_data)
         train_iter = data.iterator.pool(train_data,
@@ -196,13 +197,15 @@ def main():
                                         data.iterator.RandomShuffler())
         report_stats = utils.Statistics()
         train_stats = utils.Statistics()
-
         if args.debug:
             grad_norm = 0.
         for num_steps, train_batch in enumerate(train_iter):
             global_steps += 1
             model.train()
-            optimizer.zero_grad()
+            if args.grad_accumulator_count == 1:
+                optimizer.zero_grad()
+            elif num_grad_steps % args.grad_accumulator_count == 0:
+                optimizer.zero_grad()
             src_iter = list(zip(*train_batch))[0]
             src_words = len(list(itertools.chain.from_iterable(src_iter)))
             report_stats.n_src_words += src_words
@@ -210,12 +213,17 @@ def main():
             in_arrays = utils.seq2seq_pad_concat_convert(train_batch, -1)
             loss, stat = model(*in_arrays)
             loss.backward()
+            num_grad_steps += 1
             if args.debug:
                 norm = utils.grad_norm(model.parameters())
                 grad_norm += norm
                 if global_steps % args.report_every == 0:
                     print("> Gradient Norm: %1.4f" % (grad_norm / (num_steps + 1)))
-            optimizer.step()
+            if args.grad_accumulator_count == 1:
+                optimizer.step()
+            elif num_grad_steps % args.grad_accumulator_count == 0:
+                optimizer.step()
+                num_grad_steps = 0
             report_stats.update(stat)
             train_stats.update(stat)
             report_stats = report_func(epoch, num_steps, iter_per_epoch,

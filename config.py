@@ -42,6 +42,8 @@ def get_train_args():
     parser.add_argument('--debug', dest='debug', action='store_true',
                         help="Compute norm of gradient")
     parser.set_defaults(debug=False)
+    parser.add_argument('--grad_accumulator_count', type=int, default=1,
+                        help='number of minibatches to accumulate the gradient of')
 
     # Model Options
     parser.add_argument('--n_units', '-u', type=int, default=512,
@@ -175,8 +177,3 @@ def get_translate_args():
 
     args = parser.parse_args()
     return args
-
-
-
-
-
