@@ -14,7 +14,7 @@ import shutil
 import math
 
 import evaluator
-from models import MultiTaskNMT
+from models import MultiTaskNMT, Transformer
 import optimizer as optim
 from torchtext import data
 import utils
@@ -106,18 +106,11 @@ class CalculateBleu(object):
         for i in range(0, len(self.test_data), self.batch):
             sources, targets = zip(*self.test_data[i:i + self.batch])
             references.extend(t.tolist() for t in targets)
-            if self.beam_size > 1:
-                ys = self.model.translate(sources,
-                                          self.max_length,
-                                          beam=self.beam_size,
-                                          alpha=self.alpha)
-            else:
-                ys = [y.tolist() for y in
-                      self.model.translate(sources,
-                                           self.max_length,
-                                           beam=False)]
+            ys = self.model.translate(sources,
+                                      self.max_length,
+                                      beam=self.beam_size,
+                                      alpha=self.alpha)
             hypotheses.extend(ys)
-
             if self.max_sent is not None and \
                     ((i + 1) > self.max_sent):
                 break
@@ -157,7 +150,7 @@ def main():
     args.n_vocab = len(id2w)
 
     # Define Model
-    model = MultiTaskNMT(args)
+    model = eval(args.model)(args)
 
     tally_parameters(model)
     if args.gpu >= 0:

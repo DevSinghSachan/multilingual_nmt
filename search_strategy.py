@@ -215,5 +215,5 @@ class GreedySearch(object):
                 y = y[:inds[0, 0]]
             if len(y) == 0:
                 y = np.array([1], 'i')
-            outs.append(y)
+            outs.append(y.tolist())
         return outs

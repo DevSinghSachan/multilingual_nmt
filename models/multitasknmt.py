@@ -10,12 +10,18 @@ def find_key_from_val(dict_, value):
             return k
 
 
-def index_select(lang_id, input_):
+def index_select_train(lang_id, input_):
     index = torch.nonzero(input_[0][:, 1] == lang_id)[:, 0]
     x_block = torch.index_select(input_[0], 0, index)
     y_in_block = torch.index_select(input_[1], 0, index)
     y_out_block = torch.index_select(input_[2], 0, index)
     return x_block, y_in_block, y_out_block
+
+
+def index_select_translate(lang_id, input_):
+    index = torch.nonzero(input_[:, 1] == lang_id)[:, 0]
+    x_block = torch.index_select(input_, 0, index)
+    return index, x_block
 
 
 class MultiTaskNMT(nn.Module):
@@ -49,10 +55,10 @@ class MultiTaskNMT(nn.Module):
 
     def forward(self, *args):
         # Identify the row indexes corresponding to lang1 and lang2
-        lang1_input = index_select(self.lang1, args)
+        lang1_input = index_select_train(self.lang1, args)
         loss1, stats1 = self.model1(*lang1_input)
 
-        lang2_input = index_select(self.lang2, args)
+        lang2_input = index_select_train(self.lang2, args)
         loss2, stats2 = self.model2(*lang2_input)
 
         n_total = stats1.n_words + stats2.n_words
@@ -64,7 +70,20 @@ class MultiTaskNMT(nn.Module):
                                  n_words=n_total)
         return loss, stats
 
-    # def translate(self):
+    def translate(self, x_block, max_length=50, beam=5, alpha=0.6):
+        # Identify the row indexes corresponding to lang1 and lang2
+        index1, x_block1 = index_select_translate(self.lang1, x_block)
+        id_list1 = self.model1.translate(x_block1, max_length, beam, alpha)
+
+        index2, x_block2 = index_select_translate(self.lang2, x_block)
+        id_list2 = self.model2.translate(x_block2, max_length, beam, alpha)
+
+        index = index1.data.tolist() + index2.data.tolist()
+        id_list = id_list1 + id_list2
+        concat = list(zip(index, id_list))
+        _, output = zip(*sorted(concat, key=lambda x: x[0]))
+        return list(output)
+
 
 
 

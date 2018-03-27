@@ -606,7 +606,7 @@ class Transformer(nn.Module):
                                         y_out_block)
 
     def translate(self, x_block, max_length=50, beam=5, alpha=0.6):
-        if beam:
+        if beam > 1:
             obj = search_strategy.BeamSearch(beam_size=beam,
                                              max_len=max_length,
                                              alpha=alpha)

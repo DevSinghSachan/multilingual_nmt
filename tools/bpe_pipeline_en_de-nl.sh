@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-#!/usr/bin/env bash
-
 TF=$(pwd)
 
 export PATH=$PATH:$TF/bin
@@ -24,7 +22,7 @@ GPUARG=-1
 
 #====== EXPERIMENT BEGIN ======
 
-<<COMMENT
+
 echo "Output dir = $OUT"
 [ -d $OUT ] || mkdir -p $OUT
 [ -d $OUT/data ] || mkdir -p $OUT/data
@@ -58,18 +56,20 @@ python ${TF}/preprocess.py -i ${OUT}/data \
       -s-test test.src \
       -t-test test.tgt \
       --save_data processed
-COMMENT
-
 
 echo "Step 2: Train"
-CMD="python -m pdb $TF/train.py -i $OUT/data --data processed --model_file $OUT/models/model_$NAME.ckpt --data processed \
---batchsize 60 --tied --beam_size 5 --epoch 40 --layers 6 --multi_heads 8 --gpu $GPUARG --dev_hyp $OUT/test/valid.out \
---test_hyp $OUT/test/test.out --lang1 __de__ --lang2 __nl__"
+CMD="python $TF/train.py -i $OUT/data --data processed \
+--model_file $OUT/models/model_$NAME.ckpt --best_model_file $OUT/models/model_best_$NAME.ckpt \
+--data processed --batchsize 30 --tied --beam_size 5 --epoch 40 \
+--layers 6 --multi_heads 8 --gpu $GPUARG \
+--dev_hyp $OUT/test/valid.out --test_hyp $OUT/test/test.out \
+--model MultiTaskNMT --metric bleu --wbatchsize 3000 \
+--lang1 __de__ --lang2 __nl__ \
+--pshare_decoder_param"
 
 echo "Training command :: $CMD"
 eval "$CMD"
 
-exit
 # select a model with high accuracy and low perplexity
 model=$OUT/models/model_$NAME.ckpt
 echo "Chosen Model = $model"
