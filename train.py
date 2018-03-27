@@ -106,7 +106,9 @@ class CalculateBleu(object):
         for i in range(0, len(self.test_data), self.batch):
             sources, targets = zip(*self.test_data[i:i + self.batch])
             references.extend(t.tolist() for t in targets)
-            ys = self.model.translate(sources,
+            x_block = utils.source_pad_concat_convert(sources,
+                                                      device=None)
+            ys = self.model.translate(x_block,
                                       self.max_length,
                                       beam=self.beam_size,
                                       alpha=self.alpha)
