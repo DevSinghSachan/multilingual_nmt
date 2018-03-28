@@ -47,5 +47,5 @@ cat $OUT/test/test_l1.out.bpe | sed -E 's/(@@ )|(@@ ?$)//g' > $OUT/test/test_l1.
 cat $OUT/test/test_l2.out.bpe | sed -E 's/(@@ )|(@@ ?$)//g' > $OUT/test/test_l2.out
 
 
-perl tools/multi-bleu.perl $OUT/data/test_l1.tgt < $OUT/test/test_l1.out > $OUT/test/test_l1.tc.bleu
-perl tools/multi-bleu.perl $OUT/data/test_l2.tgt < $OUT/test/test_l2.out > $OUT/test/test_l2.tc.bleu
+perl tools/multi-bleu.perl $TEST_TGT_L1 < $OUT/test/test_l1.out > $OUT/test/test_l1.tc.bleu
+perl tools/multi-bleu.perl $TEST_TGT_L2 < $OUT/test/test_l2.out > $OUT/test/test_l2.tc.bleu
