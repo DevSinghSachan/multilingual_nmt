@@ -6,7 +6,7 @@ export PATH=$PATH:$TF/bin
 #======= EXPERIMENT SETUP ======
 
 # update these variables
-NAME="run_MT_en_de-nl"
+NAME="run_MultiTaskNMT_en_de-nl"
 OUT="temp/$NAME"
 
 DATA=${TF}"/data/en_de-nl"
@@ -29,7 +29,7 @@ echo "Output dir = $OUT"
 [ -d $OUT/models ] || mkdir $OUT/models
 [ -d $OUT/test ] || mkdir -p  $OUT/test
 
-<<COMMENT
+
 echo "Step 1a: Preprocess inputs"
 
 echo "Learning BPE on source and target combined"
@@ -56,7 +56,7 @@ python ${TF}/preprocess.py -i ${OUT}/data \
       -s-test test.src \
       -t-test test.tgt \
       --save_data processed
-COMMENT
+
 
 echo "Step 2: Train"
 CMD="python $TF/train.py -i $OUT/data --data processed \

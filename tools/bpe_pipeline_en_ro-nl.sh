@@ -6,7 +6,7 @@ export PATH=$PATH:$TF/bin
 #======= EXPERIMENT SETUP ======
 
 # update these variables
-NAME="run_MT_en_ro-nl"
+NAME="run_MultiTaskNMT_en_ro-nl"
 OUT="temp/$NAME"
 
 DATA=${TF}"/data/en_ro-nl"
