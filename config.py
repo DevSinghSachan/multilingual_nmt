@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 
 
 def get_train_args():
-    parser = ArgumentParser(description='Implementation of "Attention is All You Need" in Pytorch')
+    parser = ArgumentParser(description='Implementation of Transformer in Pytorch')
 
     parser.add_argument('--input', '-i', type=str, default='./data/ja_en',
                         help='Input directory')
@@ -12,7 +12,7 @@ def get_train_args():
                         help='Print stats at this interval')
 
     parser.add_argument('--model', type=str, default='Transformer',
-                        help='Model Type to train (Trasformer / MultiTaskNMT)')
+                        help='Model Type to train ( Trasformer / MultiTaskNMT )')
 
     # Mulltilingual Options
     parser.add_argument('--pshare_decoder_param', dest='pshare_decoder_param',
@@ -172,6 +172,7 @@ def get_translate_args():
                         help='path to save the best model')
     parser.add_argument('--batchsize', type=int, default=60)
     parser.add_argument('--beam_size', type=int, default=5)
+    parser.add_argument('--max_len', type=int, default=50)
     parser.add_argument('--alpha', default=1.0, type=float,
                         help='Length Normalization coefficient')
 
