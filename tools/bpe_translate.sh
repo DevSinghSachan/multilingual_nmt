@@ -4,6 +4,8 @@ TF=$(pwd)
 export PATH=$PATH:$TF/bin
 
 BPE_OPS=16000
+# Change this for bigger BPE Models
+
 GPUARG=0
 
 L1=$1
