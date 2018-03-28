@@ -22,13 +22,11 @@ GPUARG=0
 
 #====== EXPERIMENT BEGIN ======
 
-
 echo "Output dir = $OUT"
 [ -d $OUT ] || mkdir -p $OUT
 [ -d $OUT/data ] || mkdir -p $OUT/data
 [ -d $OUT/models ] || mkdir $OUT/models
 [ -d $OUT/test ] || mkdir -p  $OUT/test
-
 
 echo "Step 1a: Preprocess inputs"
 
