@@ -16,13 +16,13 @@ from config import get_translate_args
 
 
 class TranslateText(object):
-    def __init__(self, model, test_data, batch=50, max_length=50, beam_size=1,
-                 alpha=1.0):
+    def __init__(self, model, test_data, batch=50, max_decode_len=50,
+                 beam_size=1, alpha=1.0):
         self.model = model
         self.test_data = test_data
         self.batch = batch
         self.device = -1
-        self.max_length = max_length
+        self.max_decode_len = max_decode_len
         self.beam_size = beam_size
         self.alpha = alpha
 
@@ -36,7 +36,7 @@ class TranslateText(object):
             x_block = Variable(torch.LongTensor(x_block).type(utils.LONG_TYPE),
                                requires_grad=False)
             ys = self.model.translate(x_block,
-                                      self.max_length,
+                                      self.max_decode_len,
                                       beam=self.beam_size,
                                       alpha=self.alpha)
             hypotheses.extend(ys)
@@ -75,7 +75,7 @@ def main():
                         batch=args.batchsize // 4,
                         beam_size=args.beam_size,
                         alpha=args.alpha,
-                        max_length=args.max_len)()
+                        max_decode_len=args.max_decode_len)()
     save_output(hyp, id2w, args.output)
 
 

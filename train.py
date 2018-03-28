@@ -88,14 +88,14 @@ def report_func(epoch, batch, num_batches, start_time, report_stats,
 
 
 class CalculateBleu(object):
-    def __init__(self, model, test_data, key, batch=50, max_length=50,
+    def __init__(self, model, test_data, key, batch=50, max_decode_len=50,
                  beam_size=1, alpha=0.6, max_sent=None):
         self.model = model
         self.test_data = test_data
         self.key = key
         self.batch = batch
         self.device = -1
-        self.max_length = max_length
+        self.max_decode_length = max_decode_len
         self.beam_size = beam_size
         self.alpha = alpha
         self.max_sent = max_sent
@@ -112,7 +112,7 @@ class CalculateBleu(object):
             x_block = Variable(torch.LongTensor(x_block).type(utils.LONG_TYPE),
                                requires_grad=False)
             ys = self.model.translate(x_block,
-                                      self.max_length,
+                                      self.max_decode_length,
                                       beam=self.beam_size,
                                       alpha=self.alpha)
             hypotheses.extend(ys)
@@ -289,7 +289,8 @@ def main():
                                'Dev Bleu',
                                batch=args.batchsize // 4,
                                beam_size=args.beam_size,
-                               alpha=args.alpha)()
+                               alpha=args.alpha,
+                               max_decode_len=args.max_decode_len)()
     save_output(dev_hyp, id2w, args.dev_hyp)
 
     print('Test Set BLEU Score')
@@ -298,7 +299,8 @@ def main():
                                 'Test Bleu',
                                 batch=args.batchsize // 4,
                                 beam_size=args.beam_size,
-                                alpha=args.alpha)()
+                                alpha=args.alpha,
+                                max_decode_len=args.max_decode_len)()
     save_output(test_hyp, id2w, args.test_hyp)
 
 

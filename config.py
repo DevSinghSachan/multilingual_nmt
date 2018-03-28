@@ -95,6 +95,7 @@ def get_train_args():
                         help='Length Normalization coefficient')
     parser.add_argument('--max_sent_eval', default=500, type=int,
                         help='Max. sentences to evaluate while training')
+    parser.add_argument('--max_decode_len', type=int, default=50)
 
     # Output Files
     parser.add_argument('--out', '-o', default='results',
@@ -122,8 +123,8 @@ def get_preprocess_args():
                         help='Vocabulary size of target language')
     parser.add_argument('--tok', dest='tok', action='store_true',
                         help='Vocabulary size of target language')
-    parser.add_argument('--max_seq_length', dest='max_seq_length', type=int, default=50)
     parser.set_defaults(tok=False)
+    parser.add_argument('--max_seq_len', type=int, default=50)
     parser.add_argument('--input', '-i', type=str, default='./data/ja_en',
                         help='Input directory')
     parser.add_argument('--source_train', '-s-train', type=str,
@@ -171,7 +172,7 @@ def get_translate_args():
                         help='path to save the best model')
     parser.add_argument('--batchsize', type=int, default=60)
     parser.add_argument('--beam_size', type=int, default=5)
-    parser.add_argument('--max_len', type=int, default=50)
+    parser.add_argument('--max_decode_len', type=int, default=50)
     parser.add_argument('--alpha', default=1.0, type=float,
                         help='Length Normalization coefficient')
     parser.add_argument('--model', type=str, default='Transformer',
