@@ -7,7 +7,9 @@ import json
 import torch
 from tqdm import tqdm
 
-import net
+from models import MultiTaskNMT, Transformer
+import utils
+from torch.autograd import Variable
 import preprocess
 from train import save_output
 from config import get_translate_args
@@ -29,15 +31,14 @@ class TranslateText(object):
         hypotheses = []
         for i in tqdm(range(0, len(self.test_data), self.batch)):
             sources = self.test_data[i:i + self.batch]
-            if self.beam_size > 1:
-                ys = self.model.translate(sources,
-                                          self.max_length,
-                                          beam=self.beam_size,
-                                          alpha=self.alpha)
-            else:
-                ys = [y.tolist() for y in self.model.translate(sources,
-                                                               self.max_length,
-                                                               beam=False)]
+            x_block = utils.source_pad_concat_convert(sources,
+                                                      device=None)
+            x_block = Variable(torch.LongTensor(x_block).type(utils.LONG_TYPE),
+                               requires_grad=False)
+            ys = self.model.translate(x_block,
+                                      self.max_length,
+                                      beam=self.beam_size,
+                                      alpha=self.alpha)
             hypotheses.extend(ys)
         return hypotheses
 
@@ -62,7 +63,7 @@ def main():
                  checkpoint['epoch'],
                  checkpoint['best_score']))
     config = checkpoint['opts']
-    model = net.Transformer(config)
+    model = eval(args.model)(config)
     model.load_state_dict(checkpoint['state_dict'])
 
     if args.gpu >= 0:
@@ -73,7 +74,8 @@ def main():
                         source_data,
                         batch=args.batchsize // 4,
                         beam_size=args.beam_size,
-                        alpha=args.alpha)()
+                        alpha=args.alpha,
+                        max_length=args.max_len)()
     save_output(hyp, id2w, args.output)
 
 
