@@ -6,7 +6,7 @@ export PATH=$PATH:$TF/bin
 #======= EXPERIMENT SETUP ======
 
 # update these variables
-NAME="run_en_de-nl"
+NAME="run_MT_en_de-nl"
 OUT="temp/$NAME"
 
 DATA=${TF}"/data/en_de-nl"
