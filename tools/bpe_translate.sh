@@ -30,13 +30,13 @@ apply_bpe -c $OUT/data/bpe-codes.${BPE_OPS} < ${TEST_SRC_L2} > ${OUT}/data/test_
 # Translate Language 1
 python translate.py -i $OUT/data --data processed --batchsize 28 --beam_size 5 \
 --best_model_file $OUT/models/model_best_$NAME.ckpt --src $OUT/data/test_l1.src \
---gpu $GPUARG --output $OUT/test/test_l1.out --model ${model}
+--gpu $GPUARG --output $OUT/test/test_l1.out --model ${model} --max_decode_len 50
 
 
 # Translate Language 2
 python translate.py -i $OUT/data --data processed --batchsize 28 --beam_size 5 \
 --best_model_file $OUT/models/model_best_$NAME.ckpt --src $OUT/data/test_l2.src \
---gpu $GPUARG --output $OUT/test/test_l2.out --model ${model}
+--gpu $GPUARG --output $OUT/test/test_l2.out --model ${model} --max_decode_len 50
 
 
 mv $OUT/test/test_l1.out{,.bpe}
