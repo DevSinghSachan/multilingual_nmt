@@ -10,7 +10,6 @@ def get_train_args():
                         help='Output file for the prepared data')
     parser.add_argument('--report_every', type=int, default=50,
                         help='Print stats at this interval')
-
     parser.add_argument('--model', type=str, default='Transformer',
                         help='Model Type to train ( Trasformer / MultiTaskNMT )')
 
@@ -175,6 +174,8 @@ def get_translate_args():
     parser.add_argument('--max_len', type=int, default=50)
     parser.add_argument('--alpha', default=1.0, type=float,
                         help='Length Normalization coefficient')
+    parser.add_argument('--model', type=str, default='Transformer',
+                        help='Model Type to train ( Trasformer / MultiTaskNMT )')
 
     args = parser.parse_args()
     return args
