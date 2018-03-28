@@ -90,5 +90,4 @@ echo "Step 4b: Evaluate Dev"
 perl $TF/tools/multi-bleu.perl $OUT/data/valid.tgt < $OUT/test/valid.out > $OUT/test/valid.tc.bleu
 perl $TF/tools/multi-bleu.perl -lc $OUT/data/valid.tgt < $OUT/test/valid.out > $OUT/test/valid.lc.bleu
 
-
 t2t-bleu --translation=$OUT/data/test.tgt --reference=$OUT/test/test.out

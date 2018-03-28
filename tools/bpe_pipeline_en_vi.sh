@@ -57,27 +57,20 @@ python ${TF}/preprocess.py -i ${OUT}/data \
       -t-valid valid.tgt \
       -s-test test.src \
       -t-test test.tgt \
-      --save_data processed
+      --save_data processed \
+      --max_seq_len 70
 
 
 echo "Step 2: Train"
-CMD="python $TF/train.py -i $OUT/data --data processed --model_file $OUT/models/model_$NAME.ckpt --data processed \
---batchsize 60 --tied --beam_size 5 --epoch 40 --layers 6 --multi_heads 8 --gpu 0 --dev_hyp $OUT/test/valid.out \
---test_hyp $OUT/test/test.out"
+CMD="python $TF/train.py -i $OUT/data --data processed \
+--model_file $OUT/models/model_$NAME.ckpt --best_model_file $OUT/models/model_best_$NAME.ckpt \
+--batchsize 30 --tied --beam_size 5 --epoch 40 \
+--layers 6 --multi_heads 8 --gpu $GPUARG --max_decode_len 70 \
+--dev_hyp $OUT/test/valid.out --test_hyp $OUT/test/test.out \
+--model Transformer --metric bleu --wbatchsize 3000"
 
 echo "Training command :: $CMD"
 eval "$CMD"
-
-
-#EOF
-
-# select a model with high accuracy and low perplexity
-model=$OUT/models/model_$NAME.ckpt
-echo "Chosen Model = $model"
-if [[ -z "$model" ]]; then
-    echo "Model not found. Looked in $OUT/models/"
-    exit 1
-fi
 
 
 echo "BPE decoding/detokenising target to match with references"
