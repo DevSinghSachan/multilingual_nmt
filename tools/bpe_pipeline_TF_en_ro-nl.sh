@@ -17,7 +17,7 @@ TEST_TGT=$DATA/test.ro-nl
 VALID_SRC=$DATA/dev.en
 VALID_TGT=$DATA/dev.ro-nl
 
-BPE_OPS=16000
+BPE_OPS=32000
 GPUARG=0
 
 #====== EXPERIMENT BEGIN ======
@@ -54,13 +54,14 @@ python ${TF}/preprocess.py -i ${OUT}/data \
       -t-valid valid.tgt \
       -s-test test.src \
       -t-test test.tgt \
-      --save_data processed
+      --save_data processed \
+      --max_seq_len 70
 
 echo "Step 2: Train"
 CMD="python $TF/train.py -i $OUT/data --data processed \
 --model_file $OUT/models/model_$NAME.ckpt --best_model_file $OUT/models/model_best_$NAME.ckpt \
 --data processed --batchsize 30 --tied --beam_size 5 --epoch 40 \
---layers 6 --multi_heads 8 --gpu $GPUARG \
+--layers 6 --multi_heads 8 --gpu $GPUARG --max_decode_len 70 \
 --dev_hyp $OUT/test/valid.out --test_hyp $OUT/test/test.out \
 --model Transformer --metric bleu --wbatchsize 3000"
 
