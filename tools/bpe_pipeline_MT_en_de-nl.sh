@@ -6,20 +6,19 @@ export PATH=$PATH:$TF/bin
 #======= EXPERIMENT SETUP ======
 
 # update these variables
-NAME="run_en_vi"
+NAME="run_MultiTaskNMT_bpe32k_en_de-nl"
 OUT="temp/$NAME"
 
-DATA=${TF}"/data/en_vi"
+DATA=${TF}"/data/en_de-nl"
 TRAIN_SRC=$DATA/train.en
-TRAIN_TGT=$DATA/train.vi
-TEST_SRC=$DATA/tst2013.en
-TEST_TGT=$DATA/tst2013.vi
-VALID_SRC=$DATA/tst2012.en
-VALID_TGT=$DATA/tst2012.vi
+TRAIN_TGT=$DATA/train.de-nl
+TEST_SRC=$DATA/test.en
+TEST_TGT=$DATA/test.de-nl
+VALID_SRC=$DATA/dev.en
+VALID_TGT=$DATA/dev.de-nl
 
-BPE="src+tgt" # src, tgt, src+tgt
 BPE_OPS=32000
-GPUARG="0"
+GPUARG=0
 
 #====== EXPERIMENT BEGIN ======
 
@@ -29,9 +28,7 @@ echo "Output dir = $OUT"
 [ -d $OUT/models ] || mkdir $OUT/models
 [ -d $OUT/test ] || mkdir -p  $OUT/test
 
-
 echo "Step 1a: Preprocess inputs"
-
 
 echo "Learning BPE on source and target combined"
 cat ${TRAIN_SRC} ${TRAIN_TGT} | learn_bpe -s ${BPE_OPS} > $OUT/data/bpe-codes.${BPE_OPS}
@@ -48,7 +45,6 @@ apply_bpe -c $OUT/data/bpe-codes.${BPE_OPS} <  $VALID_TGT > $OUT/data/valid.tgt
 cp $TEST_TGT $OUT/data/test.tgt
 
 
-#: <<EOF
 echo "Step 1b: Preprocess"
 python ${TF}/preprocess.py -i ${OUT}/data \
       -s-train train.src \
@@ -64,13 +60,23 @@ python ${TF}/preprocess.py -i ${OUT}/data \
 echo "Step 2: Train"
 CMD="python $TF/train.py -i $OUT/data --data processed \
 --model_file $OUT/models/model_$NAME.ckpt --best_model_file $OUT/models/model_best_$NAME.ckpt \
---batchsize 30 --tied --beam_size 5 --epoch 40 \
---layers 6 --multi_heads 8 --gpu $GPUARG --max_decode_len 70 \
+--data processed --batchsize 30 --tied --beam_size 5 --epoch 40 \
+--layers 6 --multi_heads 8 --gpu $GPUARG \
 --dev_hyp $OUT/test/valid.out --test_hyp $OUT/test/test.out \
---model Transformer --metric bleu --wbatchsize 3000"
+--model MultiTaskNMT --metric bleu --wbatchsize 3000 --max_decode_len 70 \
+--lang1 __de__ --lang2 __nl__ \
+--pshare_decoder_param"
 
 echo "Training command :: $CMD"
 eval "$CMD"
+
+# select a model with high accuracy and low perplexity
+model=$OUT/models/model_$NAME.ckpt
+echo "Chosen Model = $model"
+if [[ -z "$model" ]]; then
+    echo "Model not found. Looked in $OUT/models/"
+    exit 1
+fi
 
 
 echo "BPE decoding/detokenising target to match with references"
