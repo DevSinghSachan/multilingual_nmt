@@ -63,7 +63,7 @@ CMD="python $TF/train.py -i $OUT/data --data processed \
 --data processed --batchsize 30 --tied --beam_size 5 --epoch 40 \
 --layers 6 --multi_heads 8 --gpu $GPUARG --max_decode_len 70 \
 --dev_hyp $OUT/test/valid.out --test_hyp $OUT/test/test.out \
---model Transformer --metric bleu --wbatchsize 3000"
+--model Transformer --metric bleu --wbatchsize 2000 --grad_accumulator_count 2"
 
 echo "Training command :: $CMD"
 eval "$CMD"
