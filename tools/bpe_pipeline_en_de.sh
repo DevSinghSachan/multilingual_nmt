@@ -18,7 +18,7 @@ VALID_SRC=$DATA/dev.en
 VALID_TGT=$DATA/dev.de
 
 BPE_OPS=32000
-GPUARG=0
+GPUARG=-1
 
 #====== EXPERIMENT BEGIN ======
 
@@ -29,6 +29,7 @@ echo "Output dir = $OUT"
 [ -d $OUT/models ] || mkdir $OUT/models
 [ -d $OUT/test ] || mkdir -p  $OUT/test
 
+<<COMMENT
 echo "Step 1a: Preprocess inputs"
 
 echo "Learning BPE on source and target combined"
@@ -45,6 +46,7 @@ apply_bpe -c $OUT/data/bpe-codes.${BPE_OPS} <  $VALID_TGT > $OUT/data/valid.tgt
 # We dont touch the test References, No BPE on them!
 cp $TEST_TGT $OUT/data/test.tgt
 
+
 echo "Step 1b: Preprocess"
 python ${TF}/preprocess.py -i ${OUT}/data \
       -s-train train.src \
@@ -55,6 +57,7 @@ python ${TF}/preprocess.py -i ${OUT}/data \
       -t-test test.tgt \
       --save_data processed \
       --max_seq_len 70
+COMMENT
 
 echo "Step 2: Train"
 CMD="python $TF/train.py -i $OUT/data --data processed \
@@ -66,7 +69,7 @@ CMD="python $TF/train.py -i $OUT/data --data processed \
 
 echo "Training command :: $CMD"
 eval "$CMD"
-
+exit
 # select a model with high accuracy and low perplexity
 model=$OUT/models/model_$NAME.ckpt
 echo "Chosen Model = $model"
