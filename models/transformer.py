@@ -86,9 +86,7 @@ def sentence_block_embed(embed, x):
     """
     batch, length = x.shape
     _, units = embed.weight.size()
-    # e = embed(x).transpose(1, 2).contiguous()
     e = embed(x)
-    # assert (e.size() == (batch, units, length))
     assert (e.size() == (batch, length, units))
     return e
 
@@ -104,7 +102,6 @@ def seq_func(func, x, reconstruct_shape=True, pad_remover=None):
     or (batchsize x sentence_length, dimension)
     """
     batch, length, units = x.shape
-    # e = torch.transpose(x, 1, 2).contiguous().view(batch * length, units)
     e = x.view(batch * length, units)
     if pad_remover:
         e = pad_remover.remove(e)
@@ -491,9 +488,7 @@ class Transformer(nn.Module):
         scaled_time = np.expand_dims(position, 1) * np.expand_dims(inv_timescales, 0)
         signal = np.concatenate([np.sin(scaled_time), np.cos(scaled_time)], axis=1)
         signal = np.reshape(signal, [1, length, channels])
-        # pos_enc_block = np.transpose(signal, (0, 2, 1))
-        pos_enc_block = signal
-        return pos_enc_block
+        return signal
 
     def make_input_embedding(self, embed, block):
         batch, length = block.shape
@@ -601,7 +596,7 @@ class Transformer(nn.Module):
         # (batch, n_units, y_length)
 
         if get_prediction:
-            return self.output(h_block[:, :, -1]), z_blocks
+            return self.output(h_block[:, -1, :]), z_blocks
         else:
             return self.output_and_loss(h_block,
                                         y_out_block)
