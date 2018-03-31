@@ -86,8 +86,10 @@ def sentence_block_embed(embed, x):
     """
     batch, length = x.shape
     _, units = embed.weight.size()
-    e = embed(x).transpose(1, 2).contiguous()
-    assert (e.size() == (batch, units, length))
+    # e = embed(x).transpose(1, 2).contiguous()
+    e = embed(x)
+    # assert (e.size() == (batch, units, length))
+    assert (e.size() == (batch, length, units))
     return e
 
 
@@ -101,8 +103,9 @@ def seq_func(func, x, reconstruct_shape=True, pad_remover=None):
     :return: Tensor of shape (batchsize, dimension, sentence_length)
     or (batchsize x sentence_length, dimension)
     """
-    batch, units, length = x.shape
-    e = torch.transpose(x, 1, 2).contiguous().view(batch * length, units)
+    batch, length, units = x.shape
+    # e = torch.transpose(x, 1, 2).contiguous().view(batch * length, units)
+    e = x.view(batch * length, units)
     if pad_remover:
         e = pad_remover.remove(e)
     e = func(e)
@@ -165,18 +168,18 @@ class MultiHeadAttention(nn.Module):
     def __init__(self, n_units, multi_heads=8, attention_dropout=0.1,
                  pos_attn=False):
         super(MultiHeadAttention, self).__init__()
-        self.W_Q = LinearSent(n_units,
-                              n_units,
-                              bias=False)
-        self.W_K = LinearSent(n_units,
-                              n_units,
-                              bias=False)
-        self.W_V = LinearSent(n_units,
-                              n_units,
-                              bias=False)
-        self.finishing_linear_layer = LinearSent(n_units,
-                                                 n_units,
-                                                 bias=False)
+        self.W_Q = nn.Linear(n_units,
+                             n_units,
+                             bias=False)
+        self.W_K = nn.Linear(n_units,
+                             n_units,
+                             bias=False)
+        self.W_V = nn.Linear(n_units,
+                             n_units,
+                             bias=False)
+        self.finishing_linear_layer = nn.Linear(n_units,
+                                                n_units,
+                                                bias=False)
         self.h = multi_heads
         self.pos_attn = pos_attn
         self.scale_score = 1. / (n_units // multi_heads) ** 0.5
@@ -193,6 +196,10 @@ class MultiHeadAttention(nn.Module):
                 K, V = self.W_K(z), self.W_V(z)
         else:
             K, V = self.W_K(x), self.W_V(z)
+
+        Q = Q.transpose(1, 2).contiguous()
+        K = K.transpose(1, 2).contiguous()
+        V = V.transpose(1, 2).contiguous()
 
         batch, n_units, n_querys = Q.shape
         _, _, n_keys = K.shape
@@ -233,6 +240,7 @@ class MultiHeadAttention(nn.Module):
         assert (C.shape == (batch, n_units, n_querys))
 
         # Final linear layer
+        C = C.transpose(1, 2).contiguous()
         C = self.finishing_linear_layer(C)
         return C
 
@@ -240,15 +248,15 @@ class MultiHeadAttention(nn.Module):
 class FeedForwardLayer(nn.Module):
     def __init__(self, n_units, n_hidden, relu_dropout=0.1):
         super(FeedForwardLayer, self).__init__()
-        self.W_1 = LinearSent(n_units, n_hidden)
+        self.W_1 = nn.Linear(n_units, n_hidden)
         self.act = nn.ReLU()
         self.dropout = nn.Dropout(relu_dropout)
-        self.W_2 = LinearSent(n_hidden, n_units)
+        self.W_2 = nn.Linear(n_hidden, n_units)
 
     def forward(self, e, pad_remover=None):
-        e = self.W_1(e, pad_remover=pad_remover)
+        e = self.W_1(e)
         e = self.dropout(self.act(e))
-        e = self.W_2(e, pad_remover=pad_remover)
+        e = self.W_2(e)
         return e
 
 
@@ -257,26 +265,24 @@ class EncoderLayer(nn.Module):
                  layer_prepostprocess_dropout=0.1, n_hidden=2048,
                  attention_dropout=0.1, relu_dropout=0.1):
         super(EncoderLayer, self).__init__()
-        self.ln_1 = LayerNormSent(n_units,
-                                  eps=1e-3)
+        self.ln_1 = LayerNorm(n_units,
+                              eps=1e-3)
         self.self_attention = MultiHeadAttention(n_units,
                                                  multi_heads,
                                                  attention_dropout)
         self.dropout1 = nn.Dropout(layer_prepostprocess_dropout)
-        self.ln_2 = LayerNormSent(n_units,
-                                  eps=1e-3)
+        self.ln_2 = LayerNorm(n_units,
+                              eps=1e-3)
         self.feed_forward = FeedForwardLayer(n_units,
                                              n_hidden,
                                              relu_dropout)
         self.dropout2 = nn.Dropout(layer_prepostprocess_dropout)
 
     def forward(self, e, xx_mask, pad_remover=None):
-        # e = self.ln_1(e)
         sub = self.self_attention(self.ln_1(e),
                                   mask=xx_mask)
         e = e + self.dropout1(sub)
 
-        # e = self.ln_2(e)
         sub = self.feed_forward(self.ln_2(e),
                                 pad_remover=pad_remover)
         e = e + self.dropout2(sub)
@@ -290,8 +296,8 @@ class DecoderLayer(nn.Module):
                  attention_dropout=0.1, relu_dropout=0.1):
         super(DecoderLayer, self).__init__()
         self.pos_attention = pos_attention
-        self.ln_1 = LayerNormSent(n_units,
-                                  eps=1e-3)
+        self.ln_1 = LayerNorm(n_units,
+                              eps=1e-3)
         self.self_attention = MultiHeadAttention(n_units,
                                                  multi_heads,
                                                  attention_dropout)
@@ -313,15 +319,15 @@ class DecoderLayer(nn.Module):
                                                     pos_attn=True)
             self.dropout_pos = nn.Dropout(layer_prepostprocess_dropout)
 
-        self.ln_2 = LayerNormSent(n_units,
-                                  eps=1e-3)
+        self.ln_2 = LayerNorm(n_units,
+                              eps=1e-3)
         self.source_attention = MultiHeadAttention(n_units,
                                                    multi_heads,
                                                    attention_dropout)
         self.dropout2 = nn.Dropout(layer_prepostprocess_dropout)
 
-        self.ln_3 = LayerNormSent(n_units,
-                                  eps=1e-3)
+        self.ln_3 = LayerNorm(n_units,
+                              eps=1e-3)
         self.feed_forward = FeedForwardLayer(n_units,
                                              n_hidden,
                                              relu_dropout)
@@ -329,28 +335,20 @@ class DecoderLayer(nn.Module):
 
     def forward(self, e, s, xy_mask, yy_mask, pad_remover):
         batch, units, length = e.shape
-
-        # e = self.ln_1(e)
         sub = self.self_attention(self.ln_1(e),
                                   mask=yy_mask)
         e = e + self.dropout1(sub)
-
         if self.pos_attention:
-            # e = self.ln_pos(e)
             p = self.pos_enc_block[:, :, :length]
             p = p.expand(batch, units, length)
             sub = self.pos_attention(p,
                                      self.ln_pos(e),
                                      mask=yy_mask)
             e = e + self.dropout_pos(sub)
-
-        # e = self.ln_2(e)
         sub = self.source_attention(self.ln_2(e),
                                     s,
                                     mask=xy_mask)
         e = e + self.dropout2(sub)
-
-        # e = self.ln_3(e)
         sub = self.feed_forward(self.ln_3(e),
                                 pad_remover=pad_remover)
         e = e + self.dropout3(sub)
@@ -371,8 +369,8 @@ class Encoder(nn.Module):
                                  attention_dropout,
                                  relu_dropout)
             self.layers.append(layer)
-        self.ln = LayerNormSent(n_units,
-                                eps=1e-3)
+        self.ln = LayerNorm(n_units,
+                            eps=1e-3)
 
     def forward(self, e, xx_mask, pad_remover):
         for layer in self.layers:
@@ -399,8 +397,8 @@ class Decoder(nn.Module):
                                  attention_dropout,
                                  relu_dropout)
             self.layers.append(layer)
-        self.ln = LayerNormSent(n_units,
-                                eps=1e-3)
+        self.ln = LayerNorm(n_units,
+                            eps=1e-3)
 
     def forward(self, e, source, xy_mask, yy_mask, pad_remover):
         for layer in self.layers:
@@ -493,13 +491,14 @@ class Transformer(nn.Module):
         scaled_time = np.expand_dims(position, 1) * np.expand_dims(inv_timescales, 0)
         signal = np.concatenate([np.sin(scaled_time), np.cos(scaled_time)], axis=1)
         signal = np.reshape(signal, [1, length, channels])
-        pos_enc_block = np.transpose(signal, (0, 2, 1))
+        # pos_enc_block = np.transpose(signal, (0, 2, 1))
+        pos_enc_block = signal
         return pos_enc_block
 
     def make_input_embedding(self, embed, block):
         batch, length = block.shape
         emb_block = sentence_block_embed(embed, block) * self.scale_emb
-        emb_block += self.pos_enc_block[:, :, :length]
+        emb_block += self.pos_enc_block[:, :length, :]
 
         if hasattr(self, 'embed_pos'):
             emb_block += sentence_block_embed(self.embed_pos,
@@ -532,7 +531,7 @@ class Transformer(nn.Module):
         return self.affine(h)
 
     def output_and_loss(self, h_block, t_block):
-        batch, units, length = h_block.shape
+        batch, length, units = h_block.shape
         # shape : (batch * sequence_length, num_classes)
         logits_flat = seq_func(self.affine,
                                h_block,
@@ -572,7 +571,8 @@ class Transformer(nn.Module):
                                                  x_block)
             xx_mask = self.make_attention_mask(x_block,
                                                x_block)
-            xpad_obj = PadRemover(x_block >= preprocess.Vocab_Pad.PAD)
+            # xpad_obj = PadRemover(x_block >= preprocess.Vocab_Pad.PAD)
+            xpad_obj = None
             # Encode Sources
             z_blocks = self.encoder(ex_block,
                                     xx_mask,
@@ -589,7 +589,8 @@ class Transformer(nn.Module):
         yy_mask *= self.make_history_mask(y_in_block)
 
         # Create PadRemover objects
-        ypad_obj = PadRemover(y_in_block >= preprocess.Vocab_Pad.PAD)
+        # ypad_obj = PadRemover(y_in_block >= preprocess.Vocab_Pad.PAD)
+        ypad_obj = None
 
         # Encode Targets with Sources (Decode without Output)
         h_block = self.decoder(ey_block,
