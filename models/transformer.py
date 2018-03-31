@@ -152,7 +152,6 @@ class LinearSent(nn.Module):
         output = seq_func(self.L, x, pad_remover=pad_remover)
         return output
 
-
 class MultiHeadAttention(nn.Module):
     """Multi-Head Attention Layer for Sentence Blocks.
     For computational efficiency, dot-product to calculate
@@ -246,13 +245,13 @@ class FeedForwardLayer(nn.Module):
     def __init__(self, n_units, n_hidden, relu_dropout=0.1):
         super(FeedForwardLayer, self).__init__()
         self.W_1 = nn.Linear(n_units, n_hidden)
-        self.act = nn.ReLU()
-        self.dropout = nn.Dropout(relu_dropout)
+        self.act = nn.ReLU(inplace=True)
+        self.dropout = nn.Dropout(relu_dropout, inplace=True)
         self.W_2 = nn.Linear(n_hidden, n_units)
 
     def forward(self, e, pad_remover=None):
-        e = self.W_1(e)
-        e = self.dropout(self.act(e))
+        e = self.dropout(self.act(self.W_1(e)))
+        # e = self.dropout(self.act(e))
         e = self.W_2(e)
         return e
 
