@@ -41,8 +41,8 @@ python translate.py -i $OUT/data --data processed --batchsize 28 --beam_size 5 \
 --gpu $GPUARG --output $OUT/test/test_l2.out --model ${model} --max_decode_len 70
 
 
-mv $OUT/test/test_l1.out{,.bpe}
-mv $OUT/test/test_l2.out{,.bpe}
+mv $OUT/test/test_l1.out $OUT/test/test_l1.out.bpe
+mv $OUT/test/test_l2.out $OUT/test/test_l2.out.bpe
 
 
 cat $OUT/test/test_l1.out.bpe | sed -E 's/(@@ )|(@@ ?$)//g' > $OUT/test/test_l1.out
