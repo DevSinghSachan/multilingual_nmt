@@ -193,27 +193,29 @@ class MultiHeadAttention(nn.Module):
         else:
             K, V = self.W_K(x), self.W_V(z)
 
-        Q = Q.transpose(1, 2).contiguous()
-        K = K.transpose(1, 2).contiguous()
-        V = V.transpose(1, 2).contiguous()
+        # Q = Q.transpose(1, 2).contiguous()
+        # K = K.transpose(1, 2).contiguous()
+        # V = V.transpose(1, 2).contiguous()
 
-        batch, n_units, n_querys = Q.shape
-        _, _, n_keys = K.shape
+        # batch, n_units, n_querys = Q.shape
+        batch, n_querys, n_units = Q.shape
+        _, n_keys, _ = K.shape
 
         # Calculate attention scores with mask for zero-padded areas
         # Perform multi-head attention using pseudo batching all together
         # at once for efficiency
-        Q = torch.cat(torch.chunk(Q, h, dim=1), dim=0)
-        K = torch.cat(torch.chunk(K, h, dim=1), dim=0)
-        V = torch.cat(torch.chunk(V, h, dim=1), dim=0)
+        Q = torch.cat(torch.chunk(Q, h, dim=2), dim=0)
+        K = torch.cat(torch.chunk(K, h, dim=2), dim=0)
+        V = torch.cat(torch.chunk(V, h, dim=2), dim=0)
 
-        assert (Q.shape == (batch * h, n_units // h, n_querys))
-        assert (K.shape == (batch * h, n_units // h, n_keys))
-        assert (V.shape == (batch * h, n_units // h, n_keys))
+        assert (Q.shape == (batch * h, n_querys, n_units // h))
+        assert (K.shape == (batch * h, n_keys, n_units // h))
+        assert (V.shape == (batch * h, n_keys, n_units // h))
 
         mask = torch.cat([mask] * h, dim=0)
-        Q = Q.transpose(1, 2).contiguous() * self.scale_score
-        batch_A = torch.bmm(Q, K)
+        # Q = Q.transpose(1, 2).contiguous() * self.scale_score
+        Q.mul_(self.scale_score)
+        batch_A = torch.bmm(Q, K.transpose(1, 2).contiguous())
 
         # batch_A = batch_A.masked_fill(1. - mask, -np.inf) # Works in v0.4
         batch_A = batch_A.masked_fill(mask == 0, -1e18)
@@ -227,16 +229,18 @@ class MultiHeadAttention(nn.Module):
         batch_A = self.dropout(batch_A)
 
         # Calculate Weighted Sum
-        V = V.transpose(1, 2).contiguous()
-        C = torch.transpose(torch.bmm(batch_A, V), 1, 2).contiguous()
-        assert (C.shape == (batch * h, n_units // h, n_querys))
+        # V = V.transpose(1, 2).contiguous()
+        # C = torch.transpose(torch.bmm(batch_A, V), 1, 2).contiguous()
+
+        C = torch.bmm(batch_A, V)
+        assert (C.shape == (batch * h, n_querys, n_units // h))
 
         # Joining the Multiple Heads
-        C = torch.cat(torch.chunk(C, h, dim=0), dim=1)
-        assert (C.shape == (batch, n_units, n_querys))
+        C = torch.cat(torch.chunk(C, h, dim=0), dim=2)
+        assert (C.shape == (batch, n_querys, n_units))
 
         # Final linear layer
-        C = C.transpose(1, 2).contiguous()
+        # C = C.transpose(1, 2).contiguous()
         C = self.finishing_linear_layer(C)
         return C
 
@@ -245,13 +249,12 @@ class FeedForwardLayer(nn.Module):
     def __init__(self, n_units, n_hidden, relu_dropout=0.1):
         super(FeedForwardLayer, self).__init__()
         self.W_1 = nn.Linear(n_units, n_hidden)
-        self.act = nn.ReLU(inplace=True)
-        self.dropout = nn.Dropout(relu_dropout, inplace=True)
+        self.act = nn.ReLU()
+        self.dropout = nn.Dropout(relu_dropout)
         self.W_2 = nn.Linear(n_hidden, n_units)
 
     def forward(self, e, pad_remover=None):
         e = self.dropout(self.act(self.W_1(e)))
-        # e = self.dropout(self.act(e))
         e = self.W_2(e)
         return e
 
