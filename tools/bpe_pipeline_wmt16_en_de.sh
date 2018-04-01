@@ -63,7 +63,7 @@ COMMENT
 echo "Step 2: Train"
 CMD="python $TF/train.py -i $OUT/data --data processed \
 --model_file $OUT/models/model_$NAME.ckpt --best_model_file $OUT/models/model_best_$NAME.ckpt \
---batchsize 30 --tied --beam_size 4 --epoch 8 \
+--batchsize 30 --tied --beam_size 4 --alpha 0.6 --epoch 8 \
 --layers 6 --multi_heads 8 --gpu 0 --max_decode_len 80 \
 --dev_hyp $OUT/test/valid.out --test_hyp $OUT/test/test.out \
 --metric bleu --wbatchsize 1000 --model Transformer \
@@ -97,16 +97,16 @@ perl $TF/tools/multi-bleu.perl $OUT/data/valid.tgt < $OUT/test/valid.out > $OUT/
 perl $TF/tools/multi-bleu.perl -lc $OUT/data/valid.tgt < $OUT/test/valid.out > $OUT/test/valid.lc.bleu
 
 #===== EXPERIMENT END ======
-t2t-bleu --translation=$OUT/data/test.tgt --reference=$OUT/test/test.out
+t2t-bleu --translation=$OUT/data/test.out --reference=$OUT/test/test.tgt
 
 
 exit
 # Secondary commands to translate using translate.py
 NAME="run_wmt16_de_en"
 OUT="/storage/devendra/temp/$NAME"
-python translate.py -i $OUT/data --data processed --batchsize 28 --beam_size 5 \
+python translate.py -i $OUT/data --data processed --batchsize 28 --beam_size 4 \
 --best_model_file $OUT/models/model_best_$NAME.ckpt --src $OUT/data/valid.src \
---gpu 0 --output $OUT/test/valid.out
+--gpu 0 --output $OUT/test/valid.out --alpha 0.6
 
 mv $OUT/test/valid.out{,.bpe}
 cat $OUT/test/valid.out.bpe | sed -E 's/(@@ )|(@@ ?$)//g' > $OUT/test/valid.out
