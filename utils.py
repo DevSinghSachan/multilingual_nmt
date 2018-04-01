@@ -101,11 +101,11 @@ def seq2seq_pad_concat_convert(xy_batch, device, eos_id=1, bos_id=3):
     y_in_block = np.pad(y_block, ((0, 0), (1, 0)), 'constant', constant_values=bos_id)
 
     # Converting from numpy format to Torch Tensor
-    x_block = Variable(torch.LongTensor(x_block).pin_memory().type(LONG_TYPE),
+    x_block = Variable(torch.LongTensor(x_block).type(LONG_TYPE),
                        requires_grad=False)
-    y_in_block = Variable(torch.LongTensor(y_in_block).pin_memory().type(LONG_TYPE),
+    y_in_block = Variable(torch.LongTensor(y_in_block).type(LONG_TYPE),
                           requires_grad=False)
-    y_out_block = Variable(torch.LongTensor(y_out_block).pin_memory().type(LONG_TYPE),
+    y_out_block = Variable(torch.LongTensor(y_out_block).type(LONG_TYPE),
                            requires_grad=False)
 
     return x_block, y_in_block, y_out_block
