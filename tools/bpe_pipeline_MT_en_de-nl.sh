@@ -7,7 +7,7 @@ export PATH=$PATH:$TF/bin
 
 # update these variables
 NAME="run_MultiTaskNMT_bpe32k_en_de-nl"
-OUT="temp/$NAME"
+OUT="/storage/devendra/temp/$NAME"
 
 DATA=${TF}"/data/en_de-nl"
 TRAIN_SRC=$DATA/train.en

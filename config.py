@@ -69,6 +69,10 @@ def get_train_args():
                         help='Use position embedding rather than sinusoid')
     parser.add_argument('--max_length', type=int, default=500,
                         help='Maximum Possible length for a sequence')
+    parser.add_argument('--no_pad_remover', dest='use_pad_remover',
+                        action='store_false',
+                        help='Use pad remover in FFN Linear layers')
+    parser.set_defaults(use_pad_remover=True)
 
     # Optimizer Options
     parser.add_argument('--warmup_steps', type=float, default=16000,

@@ -433,6 +433,7 @@ class Transformer(nn.Module):
                                self.n_hidden,
                                config.attention_dropout,
                                config.relu_dropout)
+        self.use_pad_remover = config.use_pad_remover
 
         if config.embed_position:
             self.embed_pos = nn.Embedding(config.max_length,
@@ -559,7 +560,9 @@ class Transformer(nn.Module):
                                                  x_block)
             xx_mask = self.make_attention_mask(x_block,
                                                x_block)
-            xpad_obj = PadRemover(x_block >= preprocess.Vocab_Pad.PAD)
+            xpad_obj = None
+            if self.use_pad_remover:
+                xpad_obj = PadRemover(x_block >= preprocess.Vocab_Pad.PAD)
             # Encode Sources
             z_blocks = self.encoder(ex_block,
                                     xx_mask,
@@ -576,7 +579,9 @@ class Transformer(nn.Module):
         yy_mask *= self.make_history_mask(y_in_block)
 
         # Create PadRemover objects
-        ypad_obj = PadRemover(y_in_block >= preprocess.Vocab_Pad.PAD)
+        ypad_obj = None
+        if self.use_pad_remover:
+            ypad_obj = PadRemover(y_in_block >= preprocess.Vocab_Pad.PAD)
 
         # Encode Targets with Sources (Decode without Output)
         h_block = self.decoder(ey_block,
