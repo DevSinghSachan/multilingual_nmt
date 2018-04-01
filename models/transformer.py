@@ -152,6 +152,7 @@ class LinearSent(nn.Module):
         output = seq_func(self.L, x, pad_remover=pad_remover)
         return output
 
+
 class MultiHeadAttention(nn.Module):
     """Multi-Head Attention Layer for Sentence Blocks.
     For computational efficiency, dot-product to calculate
@@ -193,11 +194,6 @@ class MultiHeadAttention(nn.Module):
         else:
             K, V = self.W_K(x), self.W_V(z)
 
-        # Q = Q.transpose(1, 2).contiguous()
-        # K = K.transpose(1, 2).contiguous()
-        # V = V.transpose(1, 2).contiguous()
-
-        # batch, n_units, n_querys = Q.shape
         batch, n_querys, n_units = Q.shape
         _, n_keys, _ = K.shape
 
@@ -213,7 +209,6 @@ class MultiHeadAttention(nn.Module):
         assert (V.shape == (batch * h, n_keys, n_units // h))
 
         mask = torch.cat([mask] * h, dim=0)
-        # Q = Q.transpose(1, 2).contiguous() * self.scale_score
         Q.mul_(self.scale_score)
         batch_A = torch.bmm(Q, K.transpose(1, 2).contiguous())
 
@@ -229,9 +224,6 @@ class MultiHeadAttention(nn.Module):
         batch_A = self.dropout(batch_A)
 
         # Calculate Weighted Sum
-        # V = V.transpose(1, 2).contiguous()
-        # C = torch.transpose(torch.bmm(batch_A, V), 1, 2).contiguous()
-
         C = torch.bmm(batch_A, V)
         assert (C.shape == (batch * h, n_querys, n_units // h))
 
@@ -240,7 +232,6 @@ class MultiHeadAttention(nn.Module):
         assert (C.shape == (batch, n_querys, n_units))
 
         # Final linear layer
-        # C = C.transpose(1, 2).contiguous()
         C = self.finishing_linear_layer(C)
         return C
 
@@ -310,8 +301,8 @@ class DecoderLayer(nn.Module):
             self.register_parameter("Position Encoding Block",
                                     self.pos_enc_block)
 
-            self.ln_pos = LayerNormSent(n_units,
-                                        eps=1e-3)
+            self.ln_pos = LayerNorm(n_units,
+                                    eps=1e-3)
             self.pos_attention = MultiHeadAttention(n_units,
                                                     multi_heads,
                                                     attention_dropout,
@@ -338,8 +329,8 @@ class DecoderLayer(nn.Module):
                                   mask=yy_mask)
         e = e + self.dropout1(sub)
         if self.pos_attention:
-            p = self.pos_enc_block[:, :, :length]
-            p = p.expand(batch, units, length)
+            p = self.pos_enc_block[:, :length, :]
+            p = p.expand(batch, length, units)
             sub = self.pos_attention(p,
                                      self.ln_pos(e),
                                      mask=yy_mask)
