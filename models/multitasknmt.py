@@ -51,14 +51,38 @@ class MultiTaskNMT(nn.Module):
         # Query Linear Layer Weight sharing in transformer encoder
         for i in range(config.layers):
             if config.pshare_encoder_param:
-                self.model1.encoder.layers[i].self_attention.W_Q.weight = \
-                    self.model2.encoder.layers[i].self_attention.W_Q.weight
+                # Share Decoder Layer
                 self.model1.decoder.layers[i] = self.model2.decoder.layers[i]
 
+                # Share Decoder Params
+                # Share Query
+                # self.model1.encoder.layers[i].self_attention.W_Q.weight = \
+                #     self.model2.encoder.layers[i].self_attention.W_Q.weight
+
+                # Share Key
+                # self.model1.encoder.layers[i].self_attention.W_K.weight = \
+                #     self.model2.encoder.layers[i].self_attention.W_K.weight
+
+                # Share Value
+                # self.model1.encoder.layers[i].self_attention.W_V.weight = \
+                #     self.model2.encoder.layers[i].self_attention.W_V.weight
+
             elif config.pshare_decoder_param:
-                self.model1.decoder.layers[i].self_attention.W_Q.weight = \
-                    self.model2.decoder.layers[i].self_attention.W_Q.weight
+                # Share Encoder Layer
                 self.model1.encoder.layers[i] = self.model2.encoder.layers[i]
+
+                # Share Decoder Params
+                # Share Query
+                # self.model1.decoder.layers[i].self_attention.W_Q.weight = \
+                #     self.model2.decoder.layers[i].self_attention.W_Q.weight
+
+                # Share Key
+                # self.model1.decoder.layers[i].self_attention.W_K.weight = \
+                #     self.model2.decoder.layers[i].self_attention.W_K.weight
+
+                # Share Value
+                # self.model1.decoder.layers[i].self_attention.W_V.weight = \
+                #     self.model2.decoder.layers[i].self_attention.W_V.weight
 
     def forward(self, *args):
         # Identify the row indexes corresponding to lang1 and lang2
