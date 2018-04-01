@@ -111,8 +111,8 @@ def seq_func(func, x, reconstruct_shape=True, pad_remover=None):
     if not reconstruct_shape:
         return e
     out_units = e.shape[1]
-    e = torch.transpose(e.view((batch, length, out_units)), 1, 2).contiguous()
-    assert (e.shape == (batch, out_units, length))
+    e = e.view(batch, length, out_units)
+    assert (e.shape == (batch, length, out_units))
     return e
 
 
@@ -559,8 +559,7 @@ class Transformer(nn.Module):
                                                  x_block)
             xx_mask = self.make_attention_mask(x_block,
                                                x_block)
-            # xpad_obj = PadRemover(x_block >= preprocess.Vocab_Pad.PAD)
-            xpad_obj = None
+            xpad_obj = PadRemover(x_block >= preprocess.Vocab_Pad.PAD)
             # Encode Sources
             z_blocks = self.encoder(ex_block,
                                     xx_mask,
@@ -577,8 +576,7 @@ class Transformer(nn.Module):
         yy_mask *= self.make_history_mask(y_in_block)
 
         # Create PadRemover objects
-        # ypad_obj = PadRemover(y_in_block >= preprocess.Vocab_Pad.PAD)
-        ypad_obj = None
+        ypad_obj = PadRemover(y_in_block >= preprocess.Vocab_Pad.PAD)
 
         # Encode Targets with Sources (Decode without Output)
         h_block = self.decoder(ey_block,

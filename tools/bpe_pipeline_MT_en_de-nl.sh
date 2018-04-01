@@ -94,4 +94,4 @@ perl $TF/tools/multi-bleu.perl $OUT/data/valid.tgt < $OUT/test/valid.out > $OUT/
 perl $TF/tools/multi-bleu.perl -lc $OUT/data/valid.tgt < $OUT/test/valid.out > $OUT/test/valid.lc.bleu
 
 
-t2t-bleu --translation=$OUT/data/test.tgt --reference=$OUT/test/test.out
+t2t-bleu --translation=$OUT/test/test.out --reference=$OUT/data/test.tgt
