@@ -51,8 +51,9 @@ class MultiTaskNMT(nn.Module):
         # Query Linear Layer Weight sharing in transformer encoder
         for i in range(config.layers):
             if config.pshare_encoder_param:
+                pass
                 # Share Decoder Layer
-                self.model1.decoder.layers[i] = self.model2.decoder.layers[i]
+                # self.model1.decoder.layers[i] = self.model2.decoder.layers[i]
 
                 # Share Decoder Params
                 # Share Query
@@ -68,8 +69,9 @@ class MultiTaskNMT(nn.Module):
                 #     self.model2.encoder.layers[i].self_attention.W_V.weight
 
             elif config.pshare_decoder_param:
+                pass
                 # Share Encoder Layer
-                self.model1.encoder.layers[i] = self.model2.encoder.layers[i]
+                # self.model1.encoder.layers[i] = self.model2.encoder.layers[i]
 
                 # Share Decoder Params
                 # Share Query
