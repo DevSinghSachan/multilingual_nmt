@@ -63,7 +63,7 @@ COMMENT
 echo "Step 2: Train"
 CMD="python $TF/train.py -i $OUT/data --data processed \
 --model_file $OUT/models/model_$NAME.ckpt --best_model_file $OUT/models/model_best_$NAME.ckpt \
---batchsize 30 --tied --beam_size 4 --alpha 0.6 --epoch 8 \
+--batchsize 30 --tied --beam_size 4 --alpha 0.6 --epoch 20 \
 --layers 6 --multi_heads 8 --gpu 0 --max_decode_len 80 \
 --dev_hyp $OUT/test/valid.out --test_hyp $OUT/test/test.out \
 --metric bleu --wbatchsize 1000 --model Transformer \
