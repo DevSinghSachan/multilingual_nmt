@@ -15,7 +15,7 @@ import math
 from torch.autograd import Variable
 
 import evaluator
-from models import MultiTaskNMT, Transformer
+from models import MultiTaskNMT, Transformer, Shaped
 import optimizer as optim
 from torchtext import data
 import utils
