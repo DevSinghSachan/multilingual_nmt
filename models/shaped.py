@@ -36,16 +36,6 @@ class Shaped(nn.Module):
 
         self.model1 = TransformerShaped(config)
         self.model2 = TransformerShaped(config)
-        shared_decoder = Decoder(config.layers,
-                                 config.n_units,
-                                 config.multi_heads,
-                                 config.layer_prepostprocess_dropout,
-                                 config.pos_attention,
-                                 config.n_units * 4,
-                                 config.attention_dropout,
-                                 config.relu_dropout)
-        self.model1.shared_decoder = shared_decoder
-        self.model2.shared_decoder = shared_decoder
 
         # Identify the language flags for training the model
         self.lang1 = find_key_from_val(config.id2w, config.lang1)
@@ -55,16 +45,40 @@ class Shaped(nn.Module):
         # Embedding Layer weight sharing
         self.model1.embed_word.weight = self.model2.embed_word.weight
 
-        # Query Linear Layer Weight sharing in transformer encoder
-        for i in range(config.layers):
-            if config.pshare_encoder_param:
-                pass
-                # Share Decoder Layer
-                # self.model1.decoder.layers[i] = self.model2.decoder.layers[i]
+        if config.pshare_encoder_param:
+            # Share Decoder Layer
+            self.model1.decoder = self.model2.decoder
+            shared_encoder = Encoder(config.layers,
+                                     config.n_units,
+                                     config.multi_heads,
+                                     config.layer_prepostprocess_dropout,
+                                     config.n_units * 4,
+                                     config.attention_dropout,
+                                     config.relu_dropout)
+            self.model1.shared_encoder = shared_encoder
+            self.model2.shared_encoder = shared_encoder
 
-            elif config.pshare_decoder_param:
-                # Share Encoder Layer
-                self.model1.encoder.layers[i] = self.model2.encoder.layers[i]
+        elif config.pshare_decoder_param:
+            # Share Encoder Layer
+            self.model1.encoder = self.model2.encoder
+            shared_decoder = Decoder(config.layers,
+                                     config.n_units,
+                                     config.multi_heads,
+                                     config.layer_prepostprocess_dropout,
+                                     config.pos_attention,
+                                     config.n_units * 4,
+                                     config.attention_dropout,
+                                     config.relu_dropout)
+            shared_linear = nn.Linear(config.n_units * 2, config.n_units)
+            shared_ln = LayerNorm(config.n_units, eps=1e-3)
+
+            self.model1.shared_decoder = shared_decoder
+            self.model1.shared_linear = shared_linear
+            self.model1.shared_ln = shared_ln
+
+            self.model2.shared_decoder = shared_decoder
+            self.model2.shared_linear = shared_linear
+            self.model2.shared_ln = shared_ln
 
     def forward(self, *args):
         # Identify the row indexes corresponding to lang1 and lang2

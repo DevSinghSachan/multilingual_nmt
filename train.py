@@ -9,6 +9,7 @@ import numpy as np
 import random
 from time import time
 import torch
+from torch import nn
 import pickle
 import shutil
 import math
@@ -20,6 +21,24 @@ import optimizer as optim
 from torchtext import data
 import utils
 from config import get_train_args
+
+
+def init_weights(m):
+    if type(m) == nn.Linear:
+        input_dim = m.weight.size(1)
+        # LeCun Initialization
+        m.weight.data.uniform_(-math.sqrt(3.0 / input_dim),
+                                math.sqrt(3.0 / input_dim))
+        # My custom initialization
+        # m.weight.data.uniform_(-3. / input_dim, 3. / input_dim)
+
+        # Xavier Initialization
+        # output_dim = m.weight.size(0)
+        # m.weight.data.uniform_(-math.sqrt(6.0 / (input_dim + output_dim)),
+        #                         math.sqrt(6.0 / (input_dim + output_dim)))
+
+        if m.bias is not None:
+            m.bias.data.fill_(0.)
 
 
 def save_checkpoint(state, is_best, model_path_, best_model_path_):
@@ -156,6 +175,7 @@ def main():
 
     # Define Model
     model = eval(args.model)(args)
+    model.apply(init_weights)
 
     tally_parameters(model)
     if args.gpu >= 0:
