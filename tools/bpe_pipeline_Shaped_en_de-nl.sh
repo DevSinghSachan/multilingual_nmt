@@ -18,7 +18,7 @@ VALID_SRC=$DATA/dev.en
 VALID_TGT=$DATA/dev.de-nl
 
 BPE_OPS=32000
-GPUARG=-1
+GPUARG=0
 
 #====== EXPERIMENT BEGIN ======
 
@@ -27,7 +27,8 @@ echo "Output dir = $OUT"
 [ -d $OUT/data ] || mkdir -p $OUT/data
 [ -d $OUT/models ] || mkdir $OUT/models
 [ -d $OUT/test ] || mkdir -p  $OUT/test
-<<COMMENT
+
+
 echo "Step 1a: Preprocess inputs"
 
 echo "Learning BPE on source and target combined"
@@ -55,7 +56,7 @@ python ${TF}/preprocess.py -i ${OUT}/data \
       -t-test test.tgt \
       --save_data processed \
       --max_seq_len 70
-COMMENT
+
 
 echo "Step 2: Train"
 CMD="python $TF/train.py -i $OUT/data --data processed \
@@ -92,6 +93,5 @@ perl $TF/tools/multi-bleu.perl -lc $OUT/data/test.tgt < $OUT/test/test.out > $OU
 echo "Step 4b: Evaluate Dev"
 perl $TF/tools/multi-bleu.perl $OUT/data/valid.tgt < $OUT/test/valid.out > $OUT/test/valid.tc.bleu
 perl $TF/tools/multi-bleu.perl -lc $OUT/data/valid.tgt < $OUT/test/valid.out > $OUT/test/valid.lc.bleu
-
 
 t2t-bleu --translation=$OUT/test/test.out --reference=$OUT/data/test.tgt
