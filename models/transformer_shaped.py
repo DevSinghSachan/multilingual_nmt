@@ -404,6 +404,7 @@ class Decoder(nn.Module):
 
 class TransformerShaped(nn.Module):
     def __init__(self, config):
+        self.config = config
         super(TransformerShaped, self).__init__()
         self.scale_emb = config.n_units ** 0.5
         self.padding_idx = 0
