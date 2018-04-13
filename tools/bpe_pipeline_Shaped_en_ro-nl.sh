@@ -65,7 +65,7 @@ CMD="python $TF/train.py -i $OUT/data --data processed \
 --layers 6 --multi_heads 8 --gpu $GPUARG \
 --dev_hyp $OUT/test/valid.out --test_hyp $OUT/test/test.out \
 --model Shaped --metric bleu --wbatchsize 2000 --max_decode_len 70 \
---lang1 __de__ --lang2 __nl__ \
+--lang1 __ro__ --lang2 __nl__ \
 --pshare_decoder_param --grad_accumulator_count 2"
 
 echo "Training command :: $CMD"
