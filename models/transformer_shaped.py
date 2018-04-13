@@ -479,7 +479,7 @@ class TransformerShaped(nn.Module):
         position = np.arange(length, dtype='f')
         num_timescales = channels // 2
         log_timescale_increment = (
-                    np.log(10000. / 1.) / (float(num_timescales) - 1))
+                np.log(10000. / 1.) / (float(num_timescales) - 1))
         inv_timescales = 1. * np.exp(
             np.arange(num_timescales).astype('f') * -log_timescale_increment)
         scaled_time = np.expand_dims(position, 1) * np.expand_dims(
@@ -575,6 +575,11 @@ class TransformerShaped(nn.Module):
             z_blocks = self.encoder(ex_block,
                                     xx_mask,
                                     xpad_obj)
+            if self.config.pshare_encoder_param:
+                z_shared = self.shared_encoder(ex_block,
+                                               xx_mask,
+                                               xpad_obj)
+                z_blocks = z_blocks + z_shared
             # (batch, n_units, x_length)
 
         ey_block = self.make_input_embedding(self.embed_word,
@@ -597,12 +602,16 @@ class TransformerShaped(nn.Module):
                                xy_mask,
                                yy_mask,
                                ypad_obj)
-        h_shared = self.shared_decoder(ey_block,
-                                       z_blocks,
-                                       xy_mask,
-                                       yy_mask,
-                                       ypad_obj)
-        h_block = h_block + h_shared
+        if self.config.pshare_decoder_param:
+            h_shared = self.shared_decoder(ey_block,
+                                           z_blocks,
+                                           xy_mask,
+                                           yy_mask,
+                                           ypad_obj)
+            # h_block = h_block + h_shared
+            h_block = self.shared_ln(self.shared_linear(torch.cat([h_block,
+                                                                   h_shared],
+                                                                  dim=-1)))
         # (batch, n_units, y_length)
 
         if get_prediction:
