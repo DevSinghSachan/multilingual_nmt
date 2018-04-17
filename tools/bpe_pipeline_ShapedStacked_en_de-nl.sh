@@ -2,7 +2,7 @@
 
 TF=$(pwd)
 
-export PATH=$PATH:$TF/bin
+export PATH=$TF/bin:$PATH
 #======= EXPERIMENT SETUP ======
 
 # update these variables
@@ -27,7 +27,6 @@ echo "Output dir = $OUT"
 [ -d $OUT/data ] || mkdir -p $OUT/data
 [ -d $OUT/models ] || mkdir $OUT/models
 [ -d $OUT/test ] || mkdir -p  $OUT/test
-
 
 echo "Step 1a: Preprocess inputs"
 
@@ -56,7 +55,6 @@ python ${TF}/preprocess.py -i ${OUT}/data \
       -t-test test.tgt \
       --save_data processed \
       --max_seq_len 70
-
 
 echo "Step 2: Train"
 CMD="python $TF/train.py -i $OUT/data --data processed \
