@@ -69,18 +69,18 @@ class MultiTaskNMT(nn.Module):
                 #     self.model2.encoder.layers[i].self_attention.W_V.weight
 
             elif config.pshare_decoder_param:
-                pass
+                # pass
                 # Share Encoder Layer
-                # self.model1.encoder.layers[i] = self.model2.encoder.layers[i]
+                self.model1.encoder.layers[i] = self.model2.encoder.layers[i]
 
                 # Share Decoder Params
                 # Share Query
-                # self.model1.decoder.layers[i].self_attention.W_Q.weight = \
-                #     self.model2.decoder.layers[i].self_attention.W_Q.weight
+                self.model1.decoder.layers[i].self_attention.W_Q.weight = \
+                    self.model2.decoder.layers[i].self_attention.W_Q.weight
 
                 # Share Key
-                # self.model1.decoder.layers[i].self_attention.W_K.weight = \
-                #     self.model2.decoder.layers[i].self_attention.W_K.weight
+                self.model1.decoder.layers[i].self_attention.W_K.weight = \
+                    self.model2.decoder.layers[i].self_attention.W_K.weight
 
                 # Share Value
                 # self.model1.decoder.layers[i].self_attention.W_V.weight = \
