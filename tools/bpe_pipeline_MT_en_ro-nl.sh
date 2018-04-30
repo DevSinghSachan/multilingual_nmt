@@ -85,8 +85,8 @@ fi
 
 
 echo "BPE decoding/detokenising target to match with references"
-mv $OUT/test/test.out{,.bpe}
-mv $OUT/test/valid.out{,.bpe}
+mv ${OUT}/test/test.out{,.bpe}
+mv ${OUT}/test/valid.out{,.bpe}
 cat $OUT/test/valid.out.bpe | sed -E 's/(@@ )|(@@ ?$)//g' > $OUT/test/valid.out
 cat $OUT/test/test.out.bpe | sed -E 's/(@@ )|(@@ ?$)//g' > $OUT/test/test.out
 
