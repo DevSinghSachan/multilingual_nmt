@@ -75,16 +75,24 @@ class MultiTaskNMT(nn.Module):
 
                 # Share Decoder Params
                 # Share Query
-                self.model1.decoder.layers[i].self_attention.W_Q.weight = \
-                    self.model2.decoder.layers[i].self_attention.W_Q.weight
+                if 'q' in config.share_sublayer:
+                    self.model1.decoder.layers[i].self_attention.W_Q.weight = \
+                        self.model2.decoder.layers[i].self_attention.W_Q.weight
 
                 # Share Key
-                self.model1.decoder.layers[i].self_attention.W_K.weight = \
-                    self.model2.decoder.layers[i].self_attention.W_K.weight
+                if 'k' in config.share_sublayer:
+                    self.model1.decoder.layers[i].self_attention.W_K.weight = \
+                        self.model2.decoder.layers[i].self_attention.W_K.weight
 
                 # Share Value
-                # self.model1.decoder.layers[i].self_attention.W_V.weight = \
-                #     self.model2.decoder.layers[i].self_attention.W_V.weight
+                if 'v' in config.share_sublayer:
+                    self.model1.decoder.layers[i].self_attention.W_V.weight = \
+                        self.model2.decoder.layers[i].self_attention.W_V.weight
+
+                # Share last feedforward Layer
+                if 'f' in config.share_sublayer:
+                    self.model1.decoder.layers[i].self_attention.finishing_linear_layer.weight = \
+                        self.model2.decoder.layers[i].self_attention.finishing_linear_layer.weight
 
     def forward(self, *args):
         # Identify the row indexes corresponding to lang1 and lang2
