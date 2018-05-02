@@ -25,7 +25,7 @@ def get_train_args():
     parser.add_argument('--lang1', type=str)
     parser.add_argument('--lang2', type=str)
 
-    parser.add_argument('--share_sublayer', default='kvqf')
+    parser.add_argument('--share_sublayer', default='kvqf', type=str)
 
     # Training Options
     parser.add_argument('--batchsize', '-b', type=int, default=10,
