@@ -78,21 +78,29 @@ class MultiTaskNMT(nn.Module):
                 if 'q' in config.share_sublayer:
                     self.model1.decoder.layers[i].self_attention.W_Q.weight = \
                         self.model2.decoder.layers[i].self_attention.W_Q.weight
+                    self.model1.decoder.layers[i].source_attention.W_Q.weight = \
+                        self.model2.decoder.layers[i].source_attention.W_Q.weight
 
                 # Share Key
                 if 'k' in config.share_sublayer:
                     self.model1.decoder.layers[i].self_attention.W_K.weight = \
                         self.model2.decoder.layers[i].self_attention.W_K.weight
+                    self.model1.decoder.layers[i].source_attention.W_K.weight = \
+                        self.model2.decoder.layers[i].source_attention.W_K.weight
 
                 # Share Value
                 if 'v' in config.share_sublayer:
                     self.model1.decoder.layers[i].self_attention.W_V.weight = \
                         self.model2.decoder.layers[i].self_attention.W_V.weight
+                    self.model1.decoder.layers[i].source_attention.W_V.weight = \
+                        self.model2.decoder.layers[i].source_attention.W_V.weight
 
                 # Share last feedforward Layer
                 if 'f' in config.share_sublayer:
                     self.model1.decoder.layers[i].self_attention.finishing_linear_layer.weight = \
                         self.model2.decoder.layers[i].self_attention.finishing_linear_layer.weight
+                    self.model1.decoder.layers[i].source_attention.finishing_linear_layer.weight = \
+                        self.model2.decoder.layers[i].source_attention.finishing_linear_layer.weight
 
     def forward(self, *args):
         # Identify the row indexes corresponding to lang1 and lang2
