@@ -12,10 +12,10 @@ OUT="temp/$NAME"
 DATA=${TF}"/data/en_ro-nl"
 TRAIN_SRC=$DATA/train.en
 TRAIN_TGT=$DATA/train.ro-nl
-TEST_SRC=$DATA/dev.en
-TEST_TGT=$DATA/dev.ro-nl
-VALID_SRC=$DATA/test.en
-VALID_TGT=$DATA/test.ro-nl
+TEST_SRC=$DATA/test.en
+TEST_TGT=$DATA/test.ro-nl
+VALID_SRC=$DATA/dev.en
+VALID_TGT=$DATA/dev.ro-nl
 
 BPE="src+tgt" # src, tgt, src+tgt
 BPE_OPS=32000
