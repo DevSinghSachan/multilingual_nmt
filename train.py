@@ -184,7 +184,8 @@ def main():
     print(model)
 
     optimizer = optim.TransformerAdamTrainer(model, args)
-    ema = ExponentialMovingAverage(decay=0.999).register(model.named_parameters())
+    ema = ExponentialMovingAverage(decay=0.999)
+    ema.register(model.named_parameters())
 
     # optionally resume from a checkpoint
     if args.resume:
