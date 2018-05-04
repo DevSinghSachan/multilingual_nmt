@@ -185,7 +185,6 @@ def main():
 
     optimizer = optim.TransformerAdamTrainer(model, args)
     ema = ExponentialMovingAverage(decay=0.999)
-    ema.register(model.named_parameters())
 
     # optionally resume from a checkpoint
     if args.resume:
@@ -236,6 +235,9 @@ def main():
             in_arrays = utils.seq2seq_pad_concat_convert(train_batch, -1)
             loss, stat = model(*in_arrays)
             loss.backward()
+            if len(ema.shadow_variable_dict) == 0:
+                # Need one forward pass to properly register parameters
+                ema.register(model.named_parameters())
             num_grad_steps += 1
             if args.debug:
                 norm = utils.grad_norm(model.parameters())
