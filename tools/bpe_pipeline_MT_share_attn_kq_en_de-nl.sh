@@ -6,7 +6,7 @@ export PATH=$PATH:$TF/bin
 #======= EXPERIMENT SETUP ======
 
 # update these variables
-NAME="run_MultiTaskNMT_bpe32k_share_attn_en_de-nl"
+NAME="run_MultiTaskNMT_bpe32k_share_attn_kq_en_de-nl"
 OUT="temp/$NAME"
 
 DATA=${TF}"/data/en_de-nl"

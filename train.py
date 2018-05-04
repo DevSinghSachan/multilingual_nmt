@@ -17,6 +17,7 @@ from torch.autograd import Variable
 
 import evaluator
 from models import MultiTaskNMT, Transformer, Shaped, LangShare
+from exp_moving_avg import ExponentialMovingAverage
 import optimizer as optim
 from torchtext import data
 import utils
@@ -183,6 +184,7 @@ def main():
     print(model)
 
     optimizer = optim.TransformerAdamTrainer(model, args)
+    ema = ExponentialMovingAverage(decay=0.999).register(model.named_parameters())
 
     # optionally resume from a checkpoint
     if args.resume:
@@ -241,8 +243,10 @@ def main():
                     print("> Gradient Norm: %1.4f" % (grad_norm / (num_steps + 1)))
             if args.grad_accumulator_count == 1:
                 optimizer.step()
+                ema.apply(model.named_parameters())
             elif num_grad_steps % args.grad_accumulator_count == 0:
                 optimizer.step()
+                ema.apply(model.named_parameters())
                 num_grad_steps = 0
             report_stats.update(stat)
             train_stats.update(stat)
@@ -287,7 +291,8 @@ def main():
                     best_score = max(score, best_score)
                     save_checkpoint({
                         'epoch': epoch + 1,
-                        'state_dict': model.state_dict(),
+                         # 'state_dict': model.state_dict(),
+                        'state_dict': model.load_state_dict(ema.shadow_variable_dict),
                         'best_score': best_score,
                         'optimizer': optimizer.state_dict(),
                         'opts': args,
