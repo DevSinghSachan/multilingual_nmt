@@ -6,7 +6,7 @@ export PATH=$PATH:$TF/bin
 #======= EXPERIMENT SETUP ======
 
 # update these variables
-NAME="run_MultiTaskNMT_bpe32k_en_de-nl"
+NAME="run_MultiTaskNMT_bpe32k_share_decoder_en_de-nl"
 OUT="temp/$NAME"
 
 DATA=${TF}"/data/en_de-nl"
@@ -65,7 +65,7 @@ CMD="python $TF/train.py -i $OUT/data --data processed \
 --dev_hyp $OUT/test/valid.out --test_hyp $OUT/test/test.out \
 --model MultiTaskNMT --metric bleu --wbatchsize 2000 --max_decode_len 70 \
 --lang1 __de__ --lang2 __nl__ \
---pshare_decoder_param --grad_accumulator_count 2"
+--pshare_decoder_param --grad_accumulator_count 2 --share_sublayer kvqf+linear --attn_share self+source"
 
 echo "Training command :: $CMD"
 eval "$CMD"
