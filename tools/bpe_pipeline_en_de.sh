@@ -18,7 +18,7 @@ VALID_SRC=$DATA/dev.en
 VALID_TGT=$DATA/dev.de
 
 BPE_OPS=32000
-GPUARG=-1
+GPUARG=0
 
 #====== EXPERIMENT BEGIN ======
 
@@ -29,7 +29,7 @@ echo "Output dir = $OUT"
 [ -d $OUT/models ] || mkdir $OUT/models
 [ -d $OUT/test ] || mkdir -p  $OUT/test
 
-<<COMMENT
+
 echo "Step 1a: Preprocess inputs"
 
 echo "Learning BPE on source and target combined"
@@ -57,7 +57,7 @@ python ${TF}/preprocess.py -i ${OUT}/data \
       -t-test test.tgt \
       --save_data processed \
       --max_seq_len 70
-COMMENT
+
 
 echo "Step 2: Train"
 CMD="python $TF/train.py -i $OUT/data --data processed \
