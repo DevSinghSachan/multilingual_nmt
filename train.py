@@ -293,7 +293,7 @@ def main():
                     save_checkpoint({
                         'epoch': epoch + 1,
                          # 'state_dict': model.state_dict(),
-                        'state_dict': model.load_state_dict(ema.shadow_variable_dict),
+                        'state_dict': ema.shadow_variable_dict,
                         'best_score': best_score,
                         'optimizer': optimizer.state_dict(),
                         'opts': args,
