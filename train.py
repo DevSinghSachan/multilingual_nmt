@@ -255,7 +255,7 @@ def main():
                                        time_s, report_stats, args.report_every)
 
             valid_stats = utils.Statistics()
-            if global_steps % 1 == 0: # args.eval_steps == 0:
+            if global_steps % args.eval_steps == 0:
                 dev_iter = data.iterator.pool(dev_data,
                                               args.wbatchsize,
                                               key=lambda x: (len(x[0]), len(x[1])),
@@ -287,7 +287,7 @@ def main():
                                              max_sent=args.max_sent_eval)()
 
                 # Threshold Global Steps to save the model
-                if global_steps > 1: #8000:
+                if global_steps > 8000:
                     is_best = score > best_score
                     best_score = max(score, best_score)
                     save_checkpoint({
