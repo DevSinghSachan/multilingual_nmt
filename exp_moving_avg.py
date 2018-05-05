@@ -10,8 +10,8 @@ class ExponentialMovingAverage(object):
         self.shadow_variable_dict = {}
 
     def register(self, var_list):
-        for name, param in var_list:
-            self.shadow_variable_dict[name] = param.data.clone()
+        for name, param in var_list.items():
+            self.shadow_variable_dict[name] = param.clone()
 
     def apply(self, var_list):
         self.num_updates += 1

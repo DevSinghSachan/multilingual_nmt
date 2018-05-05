@@ -185,6 +185,7 @@ def main():
 
     optimizer = optim.TransformerAdamTrainer(model, args)
     ema = ExponentialMovingAverage(decay=0.999)
+    ema.register(model.state_dict())
 
     # optionally resume from a checkpoint
     if args.resume:
@@ -235,9 +236,6 @@ def main():
             in_arrays = utils.seq2seq_pad_concat_convert(train_batch, -1)
             loss, stat = model(*in_arrays)
             loss.backward()
-            if len(ema.shadow_variable_dict) == 0:
-                # Need one forward pass to properly register parameters
-                ema.register(model.named_parameters())
             num_grad_steps += 1
             if args.debug:
                 norm = utils.grad_norm(model.parameters())
@@ -257,7 +255,7 @@ def main():
                                        time_s, report_stats, args.report_every)
 
             valid_stats = utils.Statistics()
-            if global_steps % args.eval_steps == 0:
+            if global_steps % 1 == 0: # args.eval_steps == 0:
                 dev_iter = data.iterator.pool(dev_data,
                                               args.wbatchsize,
                                               key=lambda x: (len(x[0]), len(x[1])),
@@ -289,7 +287,7 @@ def main():
                                              max_sent=args.max_sent_eval)()
 
                 # Threshold Global Steps to save the model
-                if global_steps > 8000:
+                if global_steps > 1: #8000:
                     is_best = score > best_score
                     best_score = max(score, best_score)
                     save_checkpoint({
