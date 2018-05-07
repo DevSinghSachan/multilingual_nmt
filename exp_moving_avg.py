@@ -15,7 +15,7 @@ class ExponentialMovingAverage(object):
             self.shadow_variable_dict[name] = param.clone()
 
     def mark_require_grad(self, var_list):
-        for name, param in var_list.items():
+        for name, param in var_list:
             if param.requires_grad:
                 self.requires_grad_set.add(name)
 
