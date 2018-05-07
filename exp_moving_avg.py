@@ -23,7 +23,7 @@ class ExponentialMovingAverage(object):
         self.num_updates += 1
         decay = min(self.decay, (1 + self.num_updates) / (10 + self.num_updates))
         for name, param in var_list.items():
-            if param in self.requires_grad_set:
+            if name in self.requires_grad_set:
                 assert name in self.shadow_variable_dict
                 data = self.shadow_variable_dict[name]
                 data -= (1 - decay) * (data - param.data.clone())
