@@ -71,8 +71,7 @@ class MultiTaskNMT(nn.Module):
             elif config.pshare_decoder_param:
                 # pass
                 # Share Encoder Layer
-                # Sharing Encoder decreases BLEU Score
-                # self.model1.encoder.layers[i] = self.model2.encoder.layers[i]
+                self.model1.encoder.layers[i] = self.model2.encoder.layers[i]
 
                 # Share Decoder Params
                 # Share Query

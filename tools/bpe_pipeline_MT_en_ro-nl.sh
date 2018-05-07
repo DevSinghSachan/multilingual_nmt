@@ -69,7 +69,7 @@ CMD="python $TF/train.py -i $OUT/data --data processed \
 --dev_hyp $OUT/test/valid.out --test_hyp $OUT/test/test.out \
 --model MultiTaskNMT --metric bleu --wbatchsize 2000 --max_decode_len 70 \
 --lang1 __ro__ --lang2 __nl__ \
---pshare_decoder_param --grad_accumulator_count 2"
+--pshare_decoder_param --grad_accumulator_count 2 --share_sublayer kv --attn_share self+source"
 
 echo "Training command :: $CMD"
 eval "$CMD"
