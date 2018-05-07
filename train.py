@@ -186,6 +186,7 @@ def main():
     optimizer = optim.TransformerAdamTrainer(model, args)
     ema = ExponentialMovingAverage(decay=0.999)
     ema.register(model.state_dict())
+    ema.mark_require_grad(model.named_parameters())
 
     # optionally resume from a checkpoint
     if args.resume:
@@ -244,10 +245,10 @@ def main():
                     print("> Gradient Norm: %1.4f" % (grad_norm / (num_steps + 1)))
             if args.grad_accumulator_count == 1:
                 optimizer.step()
-                ema.apply(model.named_parameters())
+                ema.apply(model.state_dict())
             elif num_grad_steps % args.grad_accumulator_count == 0:
                 optimizer.step()
-                ema.apply(model.named_parameters())
+                ema.apply(model.state_dict())
                 num_grad_steps = 0
             report_stats.update(stat)
             train_stats.update(stat)
