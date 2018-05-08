@@ -183,7 +183,16 @@ def main():
         model.cuda(args.gpu)
     print(model)
 
-    optimizer = optim.TransformerAdamTrainer(model, args)
+    if args.optimizer == 'Noam':
+        optimizer = optim.TransformerAdamTrainer(model, args)
+    elif args.optimizer == 'Adam':
+        optimizer = torch.optim.Adam(model, lr=1e-4)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,
+                                                               mode='max',
+                                                               factor=0.7,
+                                                               patience=7,
+                                                               verbose=True)
+
     ema = ExponentialMovingAverage(decay=0.999)
     ema.register(model.state_dict())
 
@@ -300,6 +309,9 @@ def main():
                     }, is_best,
                         args.model_file,
                         args.best_model_file)
+
+                if args.optimizer == 'Adam':
+                    scheduler.step(score)
 
     # BLEU score on Dev and Test Data
     checkpoint = torch.load(args.best_model_file)
