@@ -79,7 +79,7 @@ def get_train_args():
 
     # Optimizer Options
     parser.add_argument('--optimizer', type=str, default='Noam',
-                        help='Optimizer choice (Noam|Adam)')
+                        help='Optimizer choice (Noam|Adam|Yogi)')
     parser.add_argument('--warmup_steps', type=float, default=16000,
                         help='warmup steps in Adam Optimizer Training')
     parser.add_argument('--learning_rate', default=0.2, type=float,

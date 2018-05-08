@@ -19,6 +19,7 @@ import evaluator
 from models import MultiTaskNMT, Transformer, Shaped, LangShare
 from exp_moving_avg import ExponentialMovingAverage
 import optimizer as optim
+from yogi import Yogi
 from torchtext import data
 import utils
 from config import get_train_args
@@ -187,12 +188,29 @@ def main():
         optimizer = optim.TransformerAdamTrainer(model, args)
     elif args.optimizer == 'Adam':
         params = filter(lambda p: p.requires_grad, model.parameters())
-        optimizer = torch.optim.Adam(params, lr=args.learning_rate)
+        optimizer = torch.optim.Adam(params,
+                                     lr=args.learning_rate,
+                                     betas=(args.optimizer_adam_beta1,
+                                            args.optimizer_adam_beta2),
+                                     eps=args.optimizer_adam_epsilon)
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,
                                                                mode='max',
                                                                factor=0.7,
                                                                patience=7,
                                                                verbose=True)
+    elif args.optimizer == 'Yogi':
+        params = filter(lambda p: p.requires_grad, model.parameters())
+        optimizer = Yogi(params,
+                         lr=args.learning_rate,
+                         betas=(args.optimizer_adam_beta1,
+                                args.optimizer_adam_beta2),
+                         eps=args.optimizer_adam_epsilon)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,
+                                                               mode='max',
+                                                               factor=0.7,
+                                                               patience=7,
+                                                               verbose=True)
+
 
     ema = ExponentialMovingAverage(decay=0.999)
     ema.register(model.state_dict())
@@ -311,7 +329,7 @@ def main():
                         args.model_file,
                         args.best_model_file)
 
-                if args.optimizer == 'Adam':
+                if args.optimizer == 'Adam' or args.optimizer == 'Yogi':
                     scheduler.step(score)
 
     # BLEU score on Dev and Test Data
