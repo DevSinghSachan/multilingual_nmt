@@ -177,18 +177,13 @@ class GreedySearch(object):
         self.max_decode_length = max_len
 
     def generate_output(self, model, x_block):
-        # x_block = utils.source_pad_concat_convert(x_block, device=None)
         batch, x_length = x_block.shape
         # self.max_decode_length = x_length + 50
-        # bos
         y_block = np.full((batch, 1), preprocess.Vocab_Pad.BOS, dtype=np.int32)
         eos_flags = np.zeros((batch,), dtype=np.int32)
 
-        #x_block = Variable(torch.LongTensor(x_block).type(utils.LONG_TYPE),
-        #                   requires_grad=False)
         y_block = Variable(torch.LongTensor(y_block).type(utils.LONG_TYPE),
                            requires_grad=False)
-
         result = []
         z_blocks = None
         for i in range(self.max_decode_length):
