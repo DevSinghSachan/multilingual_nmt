@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
-lr=$1
-beta1=$2
-beta2=$3
-eps=$4
+optimizer=$1
+lr=$2
+beta1=$3
+beta2=$4
+eps=$5
 
 TF=$(pwd)
 
@@ -73,7 +74,8 @@ CMD="python $TF/train.py -i $OUT/data --data processed \
 --layers 6 --multi_heads 8 --gpu $GPUARG --max_decode_len 70 \
 --dev_hyp $OUT/test/valid.out --test_hyp $OUT/test/test.out \
 --model Transformer --metric bleu --wbatchsize 3000 \
---learning_rate ${lr} --optimizer_adam_beta1 ${beta1} --optimizer_adam_beta2 ${beta2} --optimizer_adam_epsilon ${eps}"
+--optimizer ${optimizer} --learning_rate ${lr} --optimizer_adam_beta1 ${beta1} \
+--optimizer_adam_beta2 ${beta2} --optimizer_adam_epsilon ${eps}"
 
 echo "Training command :: $CMD"
 eval "$CMD"
