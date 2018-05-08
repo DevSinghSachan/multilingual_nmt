@@ -98,10 +98,10 @@ class MultiTaskNMT(nn.Module):
 
                 # Share the linear layers
                 if 'linear' in config.share_sublayer:
-                    self.model1.encoder.layers[i].feed_forward.W_1.weight = \
-                        self.model2.encoder.layers[i].feed_forward.W_1.weight
-                    self.model1.encoder.layers[i].feed_forward.W_2.weight = \
-                        self.model2.encoder.layers[i].feed_forward.W_2.weight
+                    self.model1.encoder.layers[i].feed_forward = \
+                        self.model2.encoder.layers[i].feed_forward
+                    self.model1.encoder.layers[i].ln_2 = \
+                        self.model2.encoder.layers[i].ln_2
 
             if config.pshare_decoder_param:
                 # pass
@@ -147,10 +147,10 @@ class MultiTaskNMT(nn.Module):
 
                 # Share the linear layers
                 if 'linear' in config.share_sublayer:
-                    self.model1.decoder.layers[i].feed_forward.W_1.weight = \
-                        self.model2.decoder.layers[i].feed_forward.W_1.weight
-                    self.model1.decoder.layers[i].feed_forward.W_2.weight = \
-                        self.model2.decoder.layers[i].feed_forward.W_2.weight
+                    self.model1.decoder.layers[i].feed_forward = \
+                        self.model2.decoder.layers[i].feed_forward
+                    self.model1.decoder.layers[i].ln_3 = \
+                        self.model2.decoder.layers[i].ln_3
 
     def forward(self, *args):
         # Identify the row indexes corresponding to lang1 and lang2
