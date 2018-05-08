@@ -182,7 +182,7 @@ class GreedySearch(object):
         # self.max_decode_length = x_length + 50
         # bos
         y_block = np.full((batch, 1), preprocess.Vocab_Pad.BOS, dtype=np.int32)
-        eos_flags = np.zeros((batch,), dtype=x_block.dtype)
+        eos_flags = np.zeros((batch,), dtype=np.int32)
 
         #x_block = Variable(torch.LongTensor(x_block).type(utils.LONG_TYPE),
         #                   requires_grad=False)
