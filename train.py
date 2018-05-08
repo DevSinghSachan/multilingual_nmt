@@ -186,7 +186,8 @@ def main():
     if args.optimizer == 'Noam':
         optimizer = optim.TransformerAdamTrainer(model, args)
     elif args.optimizer == 'Adam':
-        optimizer = torch.optim.Adam(model, lr=1e-4)
+        params = filter(lambda p: p.requires_grad, model.parameters())
+        optimizer = torch.optim.Adam(params, lr=1e-4)
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,
                                                                mode='max',
                                                                factor=0.7,
