@@ -21,4 +21,4 @@ class ExponentialMovingAverage(object):
             if param.requires_grad:
                 assert name in self.shadow_variable_dict
                 data = self.shadow_variable_dict[name]
-                data -= (1 - decay) * (data - param.clone())
+                data -= (1 - decay) * (data - param.data.clone())
