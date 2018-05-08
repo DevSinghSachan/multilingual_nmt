@@ -1,4 +1,6 @@
-from models.transformer_langshare import *
+import torch
+from torch import nn
+from models import TransformerLangShare
 import utils
 
 
@@ -42,85 +44,38 @@ class LangShare(nn.Module):
         self.lang2 = find_key_from_val(config.id2w, config.lang2)
 
         # Weight sharing between the two models
+
         # Embedding Layer weight sharing
         self.model1.embed_word.weight = self.model2.embed_word.weight
 
-        if config.pshare_encoder_param:
-            # Share Decoder Layer
-            self.model1.decoder = self.model2.decoder
-            shared_encoder = Encoder(config.layers,
-                                     config.n_units,
-                                     config.multi_heads,
-                                     config.layer_prepostprocess_dropout,
-                                     config.n_units * 4,
-                                     config.attention_dropout,
-                                     config.relu_dropout)
-            self.model1.shared_encoder = shared_encoder
-            self.model2.shared_encoder = shared_encoder
-
-        elif config.pshare_decoder_param:
-            # Share Encoder Layer
+        # if config.pshare_encoder_param:
+        #     self.model1.decoder = self.model2.decoder
+        if config.pshare_decoder_param:
             self.model1.encoder = self.model2.encoder
-            shared_decoder = Decoder(config.layers,
-                                     config.n_units,
-                                     config.multi_heads,
-                                     config.layer_prepostprocess_dropout,
-                                     config.pos_attention,
-                                     config.n_units * 4,
-                                     config.attention_dropout,
-                                     config.relu_dropout)
 
-            for i in range(config.layers):
-                # Share Query
-                self.model1.decoder.layers[i].self_attention.W_Q_share = \
-                    shared_decoder.layers[i].self_attention.W_Q
-                self.model1.decoder.layers[i].source_attention.W_Q_share = \
-                    shared_decoder.layers[i].source_attention.W_Q
+        # Query Linear Layer Weight sharing in transformer encoder
+        for i in range(config.layers):
+            if config.pshare_decoder_param:
+                # Share Encoder Layer
+                # self.model1.encoder.layers[i] = self.model2.encoder.layers[i]
 
-                self.model2.decoder.layers[i].self_attention.W_Q_share = \
-                    shared_decoder.layers[i].self_attention.W_Q
-                self.model2.decoder.layers[i].source_attention.W_Q_share = \
-                    shared_decoder.layers[i].source_attention.W_Q
+                # Share Self-Attention
+                self.model1.decoder.layers[i].ln_1 = \
+                    self.model2.decoder.layers[i].ln_1
+                self.model1.decoder.layers[i].self_attention = \
+                    self.model2.decoder.layers[i].self_attention
 
-                # Share Key
-                self.model1.decoder.layers[i].self_attention.W_K_share = \
-                    shared_decoder.layers[i].self_attention.W_K
-                self.model1.decoder.layers[i].source_attention.W_K_share = \
-                    shared_decoder.layers[i].source_attention.W_K
+                # Share LayerNorm
+                self.model1.decoder.layers[i].ln_2 = \
+                    self.model2.decoder.layers[i].ln_2
+                self.model1.decoder.layers[i].source_attention = \
+                    self.model2.decoder.layers[i].source_attention
 
-                self.model2.decoder.layers[i].self_attention.W_K_share = \
-                    shared_decoder.layers[i].self_attention.W_K
-                self.model2.decoder.layers[i].source_attention.W_K_share = \
-                    shared_decoder.layers[i].source_attention.W_K
-
-                # Share Value
-                self.model1.decoder.layers[i].self_attention.W_V_share = \
-                    shared_decoder.layers[i].self_attention.W_V
-                self.model1.decoder.layers[i].source_attention.W_V_share = \
-                    shared_decoder.layers[i].source_attention.W_V
-
-                self.model2.decoder.layers[i].self_attention.W_V_share = \
-                    shared_decoder.layers[i].self_attention.W_V
-                self.model2.decoder.layers[i].source_attention.W_V_share = \
-                    shared_decoder.layers[i].source_attention.W_V
-
-                # Share Finishing Layer
-                self.model1.decoder.layers[i].self_attention.finishing_linear_layer_share = \
-                    shared_decoder.layers[i].self_attention.finishing_linear_layer
-                self.model1.decoder.layers[i].source_attention.finishing_linear_layer_share = \
-                    shared_decoder.layers[i].source_attention.finishing_linear_layer
-
-                self.model2.decoder.layers[i].self_attention.finishing_linear_layer_share = \
-                    shared_decoder.layers[i].self_attention.finishing_linear_layer
-                self.model2.decoder.layers[i].source_attention.finishing_linear_layer_share = \
-                    shared_decoder.layers[i].source_attention.finishing_linear_layer
-
-                # Share the linear layers
-                self.model1.decoder.layers[i].feed_forward.W_1_share = shared_decoder.layers[i].feed_forward.W_1
-                self.model1.decoder.layers[i].feed_forward.W_2_share = shared_decoder.layers[i].feed_forward.W_2
-
-                self.model2.decoder.layers[i].feed_forward.W_1_share = shared_decoder.layers[i].feed_forward.W_1
-                self.model2.decoder.layers[i].feed_forward.W_2_share = shared_decoder.layers[i].feed_forward.W_2
+                # Share the Linear Layers
+                self.model1.decoder.layers[i].ln_3 = \
+                    self.model2.decoder.layers[i].ln_3
+                self.model1.decoder.layers[i].feed_forward = \
+                    self.model2.decoder.layers[i].feed_forward
 
     def forward(self, *args):
         # Identify the row indexes corresponding to lang1 and lang2
@@ -141,7 +96,7 @@ class LangShare(nn.Module):
         n_total = stats1.n_words + stats2.n_words
         n_correct = stats1.n_correct + stats2.n_correct
 
-        loss = ((loss1 * stats1.n_words) + (loss2 * stats2.n_words)) / n_total
+        loss = ((loss1 * stats1.n_words) + (loss2 * stats2.n_words))/ n_total
         stats = utils.Statistics(loss=loss.data.cpu() * n_total,
                                  n_correct=n_correct,
                                  n_words=n_total)
@@ -166,3 +121,14 @@ class LangShare(nn.Module):
         concat = list(zip(index, id_list))
         _, output = zip(*sorted(concat, key=lambda x: x[0]))
         return list(output)
+
+
+
+
+
+
+
+
+
+
+
