@@ -250,6 +250,12 @@ def main():
 
     global_steps = 0
     num_grad_steps = 0
+    if args.grad_norm_for_yogi and args.optimizer == 'Yogi':
+        args.start_epoch = -1
+        l2_norm = 0.0
+        parameters = list(filter(lambda p: p.grad is not None, model.parameters()))
+        n_params = sum([p.nelement() for p in parameters])
+
     for epoch in range(args.start_epoch, args.epoch):
         random.shuffle(train_data)
         train_iter = data.iterator.pool(train_data,
@@ -276,6 +282,10 @@ def main():
             in_arrays = utils.seq2seq_pad_concat_convert(train_batch, -1)
             loss, stat = model(*in_arrays)
             loss.backward()
+            if epoch == -1 and args.grad_norm_for_yogi and args.optimizer == 'Yogi':
+                l2_norm += (utils.grad_norm(model.parameters()) ** 2) / n_params
+                continue
+
             num_grad_steps += 1
             if args.debug:
                 norm = utils.grad_norm(model.parameters())
@@ -343,6 +353,9 @@ def main():
 
                 if args.optimizer == 'Adam' or args.optimizer == 'Yogi':
                     scheduler.step(score)
+
+        if epoch == -1 and args.grad_norm_for_yogi and args.optimizer == 'Yogi':
+            optimizer.v_init = l2_norm / (num_steps + 1)
 
     # BLEU score on Dev and Test Data
     checkpoint = torch.load(args.best_model_file)
