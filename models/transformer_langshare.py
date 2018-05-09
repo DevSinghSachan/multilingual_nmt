@@ -333,6 +333,12 @@ class DecoderLayer(nn.Module):
 
     def forward(self, e, s, xy_mask, yy_mask, pad_remover):
         batch, units, length = e.shape
+        ##### New
+        sub = self.feed_forward_lang(self.ln_4(e),
+                                     pad_remover=pad_remover)
+        e = e + self.dropout4(sub)
+        #####
+        
         sub = self.self_attention(self.ln_1(e),
                                   mask=yy_mask)
         e = e + self.dropout1(sub)
@@ -350,11 +356,6 @@ class DecoderLayer(nn.Module):
         sub = self.feed_forward(self.ln_3(e),
                                 pad_remover=pad_remover)
         e = e + self.dropout3(sub)
-
-        # New
-        sub = self.feed_forward_lang(self.ln_4(e),
-                                     pad_remover=pad_remover)
-        e = e + self.dropout4(sub)
 
         return e
 

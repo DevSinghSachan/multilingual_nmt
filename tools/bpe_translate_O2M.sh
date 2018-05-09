@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 TF=$(pwd)
-export PATH=$PATH:$TF/bin
+export PATH=$TF/bin:$PATH
 
 BPE_OPS=32000
 # Change this for bigger BPE Models
