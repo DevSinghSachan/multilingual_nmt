@@ -338,7 +338,7 @@ class DecoderLayer(nn.Module):
                                      pad_remover=pad_remover)
         e = e + self.dropout4(sub)
         #####
-        
+
         sub = self.self_attention(self.ln_1(e),
                                   mask=yy_mask)
         e = e + self.dropout1(sub)
