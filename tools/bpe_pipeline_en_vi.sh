@@ -96,14 +96,14 @@ echo "Step 4b: Evaluate Dev"
 perl $TF/tools/multi-bleu.perl $OUT/data/valid.tgt < $OUT/test/valid.out > $OUT/test/valid.tc.bleu
 perl $TF/tools/multi-bleu.perl -lc $OUT/data/valid.tgt < $OUT/test/valid.out > $OUT/test/valid.lc.bleu
 
-echo "Test Bleu Score" > $OUT/${NAME}.log
-t2t-bleu --translation=$OUT/test/test.out --reference=$OUT/data/test.tgt > $OUT/${NAME}.log
-echo "" > $OUT/${NAME}.log
+echo "Test Bleu Score" >> $OUT/${NAME}.log
+t2t-bleu --translation=$OUT/test/test.out --reference=$OUT/data/test.tgt >> $OUT/${NAME}.log
+echo "" >> $OUT/${NAME}.log
 
-echo "EMA Test Bleu score" > $OUT/${NAME}.log
+echo "EMA Test Bleu score" >> $OUT/${NAME}.log
 mv $OUT/test/test.out.ema $OUT/test/test.out.ema.bpe
 mv $OUT/test/valid.out.ema $OUT/test/valid.out.ema.bpe
 cat $OUT/test/valid.out.ema.bpe | sed -E 's/(@@ )|(@@ ?$)//g' > $OUT/test/valid.out.ema
 cat $OUT/test/test.out.ema.bpe | sed -E 's/(@@ )|(@@ ?$)//g' > $OUT/test/test.out.ema
 
-t2t-bleu --translation=$OUT/test/test.out.ema --reference=$OUT/data/test.tgt > $OUT/${NAME}.log
+t2t-bleu --translation=$OUT/test/test.out.ema --reference=$OUT/data/test.tgt >> $OUT/${NAME}.log
