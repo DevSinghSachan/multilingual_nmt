@@ -158,7 +158,7 @@ class CalculateBleu(object):
                 den = self.max_sent
             else:
                 den = len(self.test_data)
-            logger.info("> Completed: [ %d / %d ]" % (i, den), end='\r')
+            print("> Completed: [ %d / %d ]" % (i, den), end='\r')
 
         bleu = evaluator.BLEUEvaluator().evaluate(references, hypotheses)
         logger.info('BLEU: {}'.format(bleu.score_str()))
