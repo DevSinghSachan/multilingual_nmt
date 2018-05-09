@@ -13,6 +13,7 @@ from torch import nn
 import pickle
 import shutil
 import math
+import logging
 from torch.autograd import Variable
 
 import evaluator
@@ -41,6 +42,17 @@ def init_weights(m):
 
         if m.bias is not None:
             m.bias.data.fill_(0.)
+
+
+def get_logger(filename):
+    logger = logging.getLogger('logger')
+    logger.setLevel(logging.DEBUG)
+    logging.basicConfig(format='%(message)s', level=logging.DEBUG)
+    handler = logging.FileHandler(filename)
+    handler.setLevel(logging.DEBUG)
+    handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s: %(message)s'))
+    logging.getLogger().addHandler(handler)
+    return logger
 
 
 def save_checkpoint(state, is_best, model_path_, best_model_path_):
@@ -121,7 +133,7 @@ class CalculateBleu(object):
         self.alpha = alpha
         self.max_sent = max_sent
 
-    def __call__(self):
+    def __call__(self, logger):
         self.model.eval()
         references = []
         hypotheses = []
@@ -146,18 +158,19 @@ class CalculateBleu(object):
                 den = self.max_sent
             else:
                 den = len(self.test_data)
-            print("> Completed: [ %d / %d ]" % (i, den), end='\r')
+            logger.info("> Completed: [ %d / %d ]" % (i, den), end='\r')
 
         bleu = evaluator.BLEUEvaluator().evaluate(references, hypotheses)
-        print('BLEU:', bleu.score_str())
-        print('')
+        logger.info('BLEU: {}'.format(bleu.score_str()))
+        logger.info('')
         return bleu.bleu, hypotheses
 
 
 def main():
     best_score = 0
     args = get_train_args()
-    print(json.dumps(args.__dict__, indent=4))
+    logger = get_logger(args.log_path)
+    logger.info(json.dumps(args.__dict__, indent=4))
 
     # Reading the int indexed text dataset
     train_data = np.load(os.path.join(args.input, args.data + ".train.npy"))
@@ -182,7 +195,7 @@ def main():
     tally_parameters(model)
     if args.gpu >= 0:
         model.cuda(args.gpu)
-    print(model)
+    logger.info(model)
 
     if args.optimizer == 'Noam':
         optimizer = optim.TransformerAdamTrainer(model, args)
@@ -211,29 +224,28 @@ def main():
                                                                patience=7,
                                                                verbose=True)
 
-
     ema = ExponentialMovingAverage(decay=0.999)
     ema.register(model.state_dict())
 
     # optionally resume from a checkpoint
     if args.resume:
         if os.path.isfile(args.model_file):
-            print("=> loading checkpoint '{}'".format(args.model_file))
+            logger.info("=> loading checkpoint '{}'".format(args.model_file))
             checkpoint = torch.load(args.model_file)
             args.start_epoch = checkpoint['epoch']
             best_score = checkpoint['best_score']
             model.load_state_dict(checkpoint['state_dict'])
             optimizer.load_state_dict(checkpoint['optimizer'])
-            print("=> loaded checkpoint '{}' (epoch {})".
+            logger.info("=> loaded checkpoint '{}' (epoch {})".
                   format(args.model_file, checkpoint['epoch']))
         else:
-            print("=> no checkpoint found at '{}'".format(args.model_file))
+            logger.info("=> no checkpoint found at '{}'".format(args.model_file))
 
     src_data, trg_data = list(zip(*train_data))
     total_src_words = len(list(itertools.chain.from_iterable(src_data)))
     total_trg_words = len(list(itertools.chain.from_iterable(trg_data)))
     iter_per_epoch = (total_src_words + total_trg_words) // (2 * args.wbatchsize)
-    print('Approximate number of iter/epoch =', iter_per_epoch)
+    logger.info('Approximate number of iter/epoch = {}'.format(iter_per_epoch))
     time_s = time()
 
     global_steps = 0
@@ -269,7 +281,7 @@ def main():
                 norm = utils.grad_norm(model.parameters())
                 grad_norm += norm
                 if global_steps % args.report_every == 0:
-                    print("> Gradient Norm: %1.4f" % (grad_norm / (num_steps + 1)))
+                    logger.info("> Gradient Norm: %1.4f" % (grad_norm / (num_steps + 1)))
             if args.grad_accumulator_count == 1:
                 optimizer.step()
                 ema.apply(model.state_dict(keep_vars=True))
@@ -297,11 +309,11 @@ def main():
                     _, stat = model(*in_arrays)
                     valid_stats.update(stat)
 
-                print('Train perplexity: %g' % train_stats.ppl())
-                print('Train accuracy: %g' % train_stats.accuracy())
+                logger.info('Train perplexity: %g' % train_stats.ppl())
+                logger.info('Train accuracy: %g' % train_stats.accuracy())
 
-                print('Validation perplexity: %g' % valid_stats.ppl())
-                print('Validation accuracy: %g' % valid_stats.accuracy())
+                logger.info('Validation perplexity: %g' % valid_stats.ppl())
+                logger.info('Validation accuracy: %g' % valid_stats.accuracy())
 
                 if args.metric == "accuracy":
                     score = valid_stats.accuracy()
@@ -312,7 +324,7 @@ def main():
                                              batch=args.batchsize // 4,
                                              beam_size=args.beam_size,
                                              alpha=args.alpha,
-                                             max_sent=args.max_sent_eval)()
+                                             max_sent=args.max_sent_eval)(logger)
 
                 # Threshold Global Steps to save the model
                 if global_steps > 8000:
@@ -320,13 +332,13 @@ def main():
                     best_score = max(score, best_score)
                     save_checkpoint({
                         'epoch': epoch + 1,
-                         # 'state_dict': model.state_dict(),
-                        'state_dict': ema.shadow_variable_dict,
+                        'state_dict': model.state_dict(),
+                        'state_dict_ema': ema.shadow_variable_dict,
                         'best_score': best_score,
                         'optimizer': optimizer.state_dict(),
                         'opts': args,
-                    }, is_best,
-                        args.model_file,
+                    },  is_best,
+                        args.model_file + '.{}'.format(epoch + 1),
                         args.best_model_file)
 
                 if args.optimizer == 'Adam' or args.optimizer == 'Yogi':
@@ -334,31 +346,53 @@ def main():
 
     # BLEU score on Dev and Test Data
     checkpoint = torch.load(args.best_model_file)
-    print("=> loaded checkpoint '{}' (epoch {}, best score {})".
+    logger.info("=> loaded checkpoint '{}' (epoch {}, best score {})".
           format(args.best_model_file,
                  checkpoint['epoch'],
                  checkpoint['best_score']))
     model.load_state_dict(checkpoint['state_dict'])
 
-    print('Dev Set BLEU Score')
+    logger.info('Dev Set BLEU Score')
     _, dev_hyp = CalculateBleu(model,
                                dev_data,
                                'Dev Bleu',
                                batch=args.batchsize // 4,
                                beam_size=args.beam_size,
                                alpha=args.alpha,
-                               max_decode_len=args.max_decode_len)()
+                               max_decode_len=args.max_decode_len)(logger)
     save_output(dev_hyp, id2w, args.dev_hyp)
 
-    print('Test Set BLEU Score')
+    logger.info('Test Set BLEU Score')
     _, test_hyp = CalculateBleu(model,
                                 test_data,
                                 'Test Bleu',
                                 batch=args.batchsize // 4,
                                 beam_size=args.beam_size,
                                 alpha=args.alpha,
-                                max_decode_len=args.max_decode_len)()
+                                max_decode_len=args.max_decode_len)(logger)
     save_output(test_hyp, id2w, args.test_hyp)
+
+    # Loading EMA state dict
+    model.load_state_dict(checkpoint['state_dict_ema'])
+    logger.info('Dev Set BLEU Score')
+    _, dev_hyp = CalculateBleu(model,
+                               dev_data,
+                               'Dev Bleu',
+                               batch=args.batchsize // 4,
+                               beam_size=args.beam_size,
+                               alpha=args.alpha,
+                               max_decode_len=args.max_decode_len)(logger)
+    save_output(dev_hyp, id2w, args.dev_hyp + '.ema')
+
+    logger.info('Test Set BLEU Score')
+    _, test_hyp = CalculateBleu(model,
+                                test_data,
+                                'Test Bleu',
+                                batch=args.batchsize // 4,
+                                beam_size=args.beam_size,
+                                alpha=args.alpha,
+                                max_decode_len=args.max_decode_len)(logger)
+    save_output(test_hyp, id2w, args.test_hyp + '.ema')
 
 
 if __name__ == '__main__':

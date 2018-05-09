@@ -117,6 +117,8 @@ def get_train_args():
                         help='path to save dev set hypothesis')
     parser.add_argument('--test_hyp', default='results/test.out', type=str,
                         help='path to save test set hypothesis')
+    parser.add_argument('--log_path', default='results/log.txt', type=str,
+                        help='logger path')
 
     args = parser.parse_args()
     return args

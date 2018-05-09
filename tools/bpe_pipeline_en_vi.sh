@@ -8,12 +8,13 @@ eps=$5
 
 TF=$(pwd)
 
-export PATH=$PATH:$TF/bin
+export PATH=$TF/bin:$PATH
 #======= EXPERIMENT SETUP ======
 
 # update these variables
 NAME="run_en_vi_${optimizer}_${lr}_${beta1}_${beta2}_${eps}"
-OUT="temp/$NAME"
+OUT="/results/temp/$NAME"
+# OUT="temp/$NAME"
 
 DATA=${TF}"/data/en_vi"
 TRAIN_SRC=$DATA/train.en
@@ -73,7 +74,7 @@ CMD="python $TF/train.py -i $OUT/data --data processed \
 --batchsize 30 --tied --beam_size 5 --epoch 40 \
 --layers 6 --multi_heads 8 --gpu $GPUARG --max_decode_len 70 \
 --dev_hyp $OUT/test/valid.out --test_hyp $OUT/test/test.out \
---model Transformer --metric bleu --wbatchsize 3000 \
+--model Transformer --metric bleu --wbatchsize 3000 --log_path $OUT/${NAME}.log \
 --optimizer ${optimizer} --learning_rate ${lr} --optimizer_adam_beta1 ${beta1} \
 --optimizer_adam_beta2 ${beta2} --optimizer_adam_epsilon ${eps}"
 
@@ -95,5 +96,14 @@ echo "Step 4b: Evaluate Dev"
 perl $TF/tools/multi-bleu.perl $OUT/data/valid.tgt < $OUT/test/valid.out > $OUT/test/valid.tc.bleu
 perl $TF/tools/multi-bleu.perl -lc $OUT/data/valid.tgt < $OUT/test/valid.out > $OUT/test/valid.lc.bleu
 
+echo "Test Bleu Score" > $OUT/${NAME}.log
+t2t-bleu --translation=$OUT/test/test.out --reference=$OUT/data/test.tgt > $OUT/${NAME}.log
+echo "" > $OUT/${NAME}.log
 
-t2t-bleu --translation=$OUT/test/test.out --reference=$OUT/data/test.tgt
+echo "EMA Test Bleu score" > $OUT/${NAME}.log
+mv $OUT/test/test.out.ema $OUT/test/test.out.ema.bpe
+mv $OUT/test/valid.out.ema $OUT/test/valid.out.ema.bpe
+cat $OUT/test/valid.out.ema.bpe | sed -E 's/(@@ )|(@@ ?$)//g' > $OUT/test/valid.out.ema
+cat $OUT/test/test.out.ema.bpe | sed -E 's/(@@ )|(@@ ?$)//g' > $OUT/test/test.out.ema
+
+t2t-bleu --translation=$OUT/test/test.out.ema --reference=$OUT/data/test.tgt > $OUT/${NAME}.log
