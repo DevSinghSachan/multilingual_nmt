@@ -253,7 +253,7 @@ def main():
     if args.grad_norm_for_yogi and args.optimizer == 'Yogi':
         args.start_epoch = -1
         l2_norm = 0.0
-        parameters = list(filter(lambda p: p.grad is not None, model.parameters()))
+        parameters = list(filter(lambda p: p.requires_grad is True, model.parameters()))
         n_params = sum([p.nelement() for p in parameters])
 
     for epoch in range(args.start_epoch, args.epoch):
