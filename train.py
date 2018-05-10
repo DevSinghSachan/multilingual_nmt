@@ -24,7 +24,7 @@ from yogi import Yogi
 from torchtext import data
 import utils
 from config import get_train_args
-from data_parallel import data_parallel
+from data_parallel import data_parallel as dp
 
 
 def init_weights(m):
@@ -283,7 +283,7 @@ def main():
             train_stats.n_src_words += src_words
             in_arrays = utils.seq2seq_pad_concat_convert(train_batch, -1)
             # loss, stat = model(*in_arrays)
-            loss_tuple, stat_tuple = zip(*data_parallel(model, *in_arrays, device_ids=[0, 1]))
+            loss_tuple, stat_tuple = zip(*dp(model, in_arrays, device_ids=[0, 1]))
             # loss_tuple, stat_tuple = zip(*model(*in_arrays))
             n_total = sum([obj.n_words for obj in stat_tuple])
             n_correct = sum([obj.n_correct for obj in stat_tuple])
@@ -329,7 +329,7 @@ def main():
                     model.eval()
                     in_arrays = utils.seq2seq_pad_concat_convert(dev_batch, -1)
                     #_, stat = model(*in_arrays)
-                    _, stat_tuple = zip(*data_parallel(model, *in_arrays, device_ids=[0, 1]))
+                    _, stat_tuple = zip(*dp(model, in_arrays, device_ids=[0, 1]))
                     # _, stat_tuple = zip(*model(*in_arrays))
                     n_total = sum([obj.n_words for obj in stat_tuple])
                     n_correct = sum([obj.n_correct for obj in stat_tuple])
