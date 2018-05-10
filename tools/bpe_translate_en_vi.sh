@@ -12,19 +12,14 @@ beta1=$3
 beta2=$4
 eps=$5
 
-
-L1=en
-L2=vi
-
-DATA_L1=${TF}"/data/${L1}_${L2}"
 NAME="run_en_vi_${optimizer}_${lr}_${beta1}_${beta2}_${eps}"
 OUT="temp/$NAME"
 
-TEST_SRC=$DATA_L1/test.${L1}
-TEST_TGT=$DATA_L1/test.${L2}
+TEST_SRC=$OUT/data/test.src
+TEST_TGT=$OUT/data/test.tgt
 
 # Apply BPE Coding to the languages
-apply_bpe -c $OUT/data/bpe-codes.${BPE_OPS} < ${TEST_SRC} > ${OUT}/data/test.src
+# apply_bpe -c $OUT/data/bpe-codes.${BPE_OPS} < ${TEST_SRC} > ${OUT}/data/test.src
 
 # Translate
 python translate.py -i $OUT/data --data processed --batchsize 28 --beam_size 5 \
