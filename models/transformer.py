@@ -440,10 +440,15 @@ class Transformer(nn.Module):
                                           config.n_units,
                                           padding_idx=0)
         if config.tied:
-            self.affine = self.tied_linear
-            self.affine_bias = nn.Parameter(torch.Tensor(config.n_vocab))
-            stdv = 1. / math.sqrt(config.n_units)
-            self.affine_bias.data.uniform_(-stdv, stdv)
+            # self.affine = self.tied_linear
+            self.affine = nn.Linear(config.n_units,
+                                    config.n_vocab,
+                                    bias=True)
+            self.affine.weight = self.embed_word.weight
+
+            # self.affine_bias = nn.Parameter(torch.Tensor(config.n_vocab))
+            # stdv = 1. / math.sqrt(config.n_units)
+            # self.affine_bias.data.uniform_(-stdv, stdv)
         else:
             self.affine = nn.Linear(config.n_units,
                                     config.n_vocab,
