@@ -355,8 +355,8 @@ def main():
                     scheduler.step(score)
 
         if epoch == -1 and args.grad_norm_for_yogi and args.optimizer == 'Yogi':
-            logger.info("Initializing Yogi Optimizer")
             optimizer.v_init = l2_norm / (num_steps + 1)
+            logger.info("Initializing Yogi Optimizer (v_init = {})".format(optimizer.v_init))
 
     # BLEU score on Dev and Test Data
     checkpoint = torch.load(args.best_model_file)
