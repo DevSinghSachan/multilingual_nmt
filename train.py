@@ -331,7 +331,8 @@ def main():
                     _, stat_tuple = zip(*dp(model, in_arrays, device_ids=args.multi_gpu))
                     n_total = sum([obj.n_words for obj in stat_tuple])
                     n_correct = sum([obj.n_correct for obj in stat_tuple])
-                    stat = utils.Statistics(loss=loss.data.cpu() * n_total,
+                    dev_loss = sum([obj.loss for obj in stat_tuple])
+                    stat = utils.Statistics(loss=dev_loss,
                                             n_correct=n_correct,
                                             n_words=n_total)
                     valid_stats.update(stat)
