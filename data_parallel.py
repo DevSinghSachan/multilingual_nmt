@@ -96,6 +96,7 @@ def gather(outputs, target_device, dim=0):
         if isinstance(out, torch.autograd.Variable):
             return Gather.apply(target_device, dim, *outputs)
         if isinstance(out, tuple):
+            outputs = ((Gather.apply(target_device, dim, each[0]), each[1]) for each in outputs)
             return outputs
         if out is None:
             return None
