@@ -24,6 +24,7 @@ from yogi import Yogi
 from torchtext import data
 import utils
 from config import get_train_args
+import data_parallel
 
 
 def init_weights(m):
@@ -195,7 +196,7 @@ def main():
     tally_parameters(model)
     if args.gpu >= 0:
         # model.cuda(args.gpu)
-        model = torch.nn.DataParallel(model, device_ids=[0, 1]).cuda(0)
+        model = data_parallel.DataParallel(model, device_ids=[0, 1]).cuda(0)
     logger.info(model)
 
     if args.optimizer == 'Noam':
