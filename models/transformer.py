@@ -553,7 +553,9 @@ class Transformer(nn.Module):
         # stats = utils.Statistics(loss=loss.data.cpu() * n_total,
         #                          n_correct=n_correct,
         #                          n_words=n_total)
-        stats = [loss.data.cpu() * n_total, n_correct, n_total]
+        stats = {'loss': loss.data.cpu() * n_total,
+                 'n_correct': n_correct,
+                 'n_words': n_total}
         return loss, stats
 
     def forward(self, x_block, y_in_block, y_out_block, get_prediction=False,
