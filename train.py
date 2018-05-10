@@ -282,7 +282,17 @@ def main():
             report_stats.n_src_words += src_words
             train_stats.n_src_words += src_words
             in_arrays = utils.seq2seq_pad_concat_convert(train_batch, -1)
-            loss, stat = model(*in_arrays)
+            # loss, stat = model(*in_arrays)
+            loss_tuple, stat_tuple = zip(*model(*in_arrays))
+            n_total = sum([obj.n_words for obj in stat_tuple])
+            n_correct = sum([obj.n_correct for obj in stat_tuple])
+            loss = 0
+            for l_, s_ in zip(loss_tuple, stat_tuple):
+                loss += l_ * s_.n_words
+            loss /= n_total
+            stat = utils.Statistics(loss=loss.data.cpu() * n_total,
+                                     n_correct=n_correct,
+                                     n_words=n_total)
             loss.backward()
             if epoch == -1 and args.grad_norm_for_yogi and args.optimizer == 'Yogi':
                 l2_norm += (utils.grad_norm(model.parameters()) ** 2) / n_params
