@@ -280,12 +280,11 @@ def main():
             report_stats.n_src_words += src_words
             train_stats.n_src_words += src_words
             in_arrays = utils.seq2seq_pad_concat_convert(train_batch, -1)
-            loss, stat = model(*in_arrays)
+            loss, stat = torch.nn.DataParallel(model, device_ids=[0, 1])(*in_arrays)
             loss.backward()
             if epoch == -1 and args.grad_norm_for_yogi and args.optimizer == 'Yogi':
                 l2_norm += (utils.grad_norm(model.parameters()) ** 2) / n_params
                 continue
-
             num_grad_steps += 1
             if args.debug:
                 norm = utils.grad_norm(model.parameters())
