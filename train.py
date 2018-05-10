@@ -327,7 +327,13 @@ def main():
                 for dev_batch in dev_iter:
                     model.eval()
                     in_arrays = utils.seq2seq_pad_concat_convert(dev_batch, -1)
-                    _, stat = model(*in_arrays)
+                    #_, stat = model(*in_arrays)
+                    _, stat_tuple = zip(*model(*in_arrays))
+                    n_total = sum([obj.n_words for obj in stat_tuple])
+                    n_correct = sum([obj.n_correct for obj in stat_tuple])
+                    stat = utils.Statistics(loss=loss.data.cpu() * n_total,
+                                            n_correct=n_correct,
+                                            n_words=n_total)
                     valid_stats.update(stat)
 
                 logger.info('Train perplexity: %g' % train_stats.ppl())
