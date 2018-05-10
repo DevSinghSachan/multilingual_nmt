@@ -13,7 +13,7 @@ beta2=$4
 eps=$5
 
 NAME="run_en_vi_${optimizer}_${lr}_${beta1}_${beta2}_${eps}"
-OUT="temp/$NAME"
+OUT="/results/run1/$NAME"
 
 TEST_SRC=$OUT/data/test.src
 TEST_TGT=$OUT/data/test.tgt
