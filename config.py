@@ -48,6 +48,8 @@ def get_train_args():
                         help='number of minibatches to accumulate the gradient of')
 
     # Model Options
+    parser.add_argument('--multi_gpu', nargs='+', default=range(8),
+                        help='gpu ids')
     parser.add_argument('--n_units', '-u', type=int, default=512,
                         help='Number of units')
     parser.add_argument('--layers', '-l', type=int, default=6,
