@@ -195,7 +195,7 @@ def main():
     tally_parameters(model)
     if args.gpu >= 0:
         # model.cuda(args.gpu)
-        model = torch.nn.DataParallel(model, device_ids=[0, 1])
+        model = torch.nn.DataParallel(model, device_ids=[0, 1]).cuda(0)
     logger.info(model)
 
     if args.optimizer == 'Noam':
