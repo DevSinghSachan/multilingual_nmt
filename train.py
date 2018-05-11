@@ -226,7 +226,7 @@ def main():
                                                                patience=7,
                                                                verbose=True)
 
-    ema = ExponentialMovingAverage(decay=0.999)
+    ema = ExponentialMovingAverage(decay=args.ema_decay)
     ema.register(model.state_dict())
 
     # optionally resume from a checkpoint

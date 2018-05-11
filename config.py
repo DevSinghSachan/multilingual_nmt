@@ -97,6 +97,8 @@ def get_train_args():
                         help='Beta2 for Adam training')
     parser.add_argument('--optimizer_adam_epsilon', default=1e-9, type=float,
                         help='Epsilon for Adam training')
+    parser.add_argument('--ema_decay', default=0.999, type=float,
+                        help='EMA decay')
 
     # Evaluation Options
     parser.add_argument('--eval_steps', default=1000, type=int,
