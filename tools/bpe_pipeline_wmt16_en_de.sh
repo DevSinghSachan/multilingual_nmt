@@ -7,11 +7,17 @@ TF=$(pwd)
 export PATH=$PATH:$TF/bin
 #======= EXPERIMENT SETUP ======
 
-# update these variables
-NAME="run_wmt16_de_en"
-OUT="/storage/devendra/temp/$NAME"
+optimizer=$1
+lr=$2
+beta1=$3
+beta2=$4
+eps=$5
 
-DATA="/storage/devendra/temp/wmt16_de_en"
+# update these variables
+NAME="run_wmt16_de_en_${optimizer}_${lr}_${beta1}_${beta2}_${eps}"
+OUT="/results/$NAME"
+
+DATA="/results/wmt16_de_en"
 TRAIN_SRC=$DATA/train.tok.clean.en
 TRAIN_TGT=$DATA/train.tok.clean.de
 TEST_SRC=$DATA/newstest2013.tok.en
@@ -30,7 +36,7 @@ echo "Output dir = $OUT"
 [ -d $OUT/models ] || mkdir $OUT/models
 [ -d $OUT/test ] || mkdir -p  $OUT/test
 
-<<COMMENT
+
 echo "Step 1a: Preprocess inputs"
 
 echo "Learning BPE on source and target combined"
@@ -58,7 +64,7 @@ python ${TF}/preprocess.py -i ${OUT}/data \
       -t-test test.tgt \
       --save_data processed \
       --max_seq_len 80
-COMMENT
+
 
 echo "Step 2: Train"
 CMD="python $TF/train.py -i $OUT/data --data processed \
@@ -66,8 +72,8 @@ CMD="python $TF/train.py -i $OUT/data --data processed \
 --batchsize 30 --tied --beam_size 4 --alpha 0.6 --epoch 20 \
 --layers 6 --multi_heads 8 --gpu 0 --max_decode_len 80 \
 --dev_hyp $OUT/test/valid.out --test_hyp $OUT/test/test.out \
---metric bleu --wbatchsize 1000 --model Transformer \
---grad_accumulator_count 18 --warmup_steps 8000 --eval_steps 20000"
+--metric bleu --wbatchsize 16000 --model Transformer \
+--grad_accumulator_count 2 --warmup_steps 8000 --eval_steps 1000"
 
 echo "Training command :: $CMD"
 eval "$CMD"
@@ -98,7 +104,6 @@ perl $TF/tools/multi-bleu.perl -lc $OUT/data/valid.tgt < $OUT/test/valid.out > $
 
 #===== EXPERIMENT END ======
 t2t-bleu --translation=$OUT/test/test.out --reference=$OUT/data/test.tgt
-
 
 
 exit
