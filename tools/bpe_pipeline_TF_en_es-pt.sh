@@ -8,13 +8,13 @@ export PATH=$TF/bin:$PATH
 NAME="run_TF_en_pt-es"
 OUT="temp/$NAME"
 
-DATA=${TF}"/data/en_pt-es"
+DATA=${TF}"/data/en_es-pt"
 TRAIN_SRC=$DATA/train.en
-TRAIN_TGT=$DATA/train.pt-es
+TRAIN_TGT=$DATA/train.es-pt
 TEST_SRC=$DATA/test.en
-TEST_TGT=$DATA/test.pt-es
+TEST_TGT=$DATA/test.es-pt
 VALID_SRC=$DATA/dev.en
-VALID_TGT=$DATA/dev.pt-es
+VALID_TGT=$DATA/dev.es-pt
 
 BPE_OPS=32000
 GPUARG=0
@@ -94,4 +94,4 @@ fi
 
 # Translate the other files
 
-bash tools/bpe_translate_O2M.sh en pt es Transformer TF
+bash tools/bpe_translate_O2M.sh en es pt Transformer TF
