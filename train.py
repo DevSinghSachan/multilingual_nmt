@@ -292,8 +292,8 @@ def main():
                     best_score = max(score, best_score)
                     save_checkpoint({
                         'epoch': epoch + 1,
-                         # 'state_dict': model.state_dict(),
-                        'state_dict': ema.shadow_variable_dict,
+                        'state_dict': model.state_dict(),
+                        'state_dict_ema': ema.shadow_variable_dict,
                         'best_score': best_score,
                         'optimizer': optimizer.state_dict(),
                         'opts': args,
