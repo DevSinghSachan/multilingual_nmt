@@ -70,6 +70,7 @@ def main():
         model.cuda(args.gpu)
     print(model)
 
+    # Translating State Dict
     hyp = TranslateText(model,
                         source_data,
                         batch=args.batchsize // 4,
@@ -77,6 +78,20 @@ def main():
                         alpha=args.alpha,
                         max_decode_len=args.max_decode_len)()
     save_output(hyp, id2w, args.output)
+
+    # Translating using EMA State Dict
+    model.load_state_dict(checkpoint['state_dict_ema'])
+    if args.gpu >= 0:
+        model.cuda(args.gpu)
+    print(model)
+
+    hyp = TranslateText(model,
+                        source_data,
+                        batch=args.batchsize // 4,
+                        beam_size=args.beam_size,
+                        alpha=args.alpha,
+                        max_decode_len=args.max_decode_len)()
+    save_output(hyp, id2w, args.output + '.ema')
 
 
 if __name__ == '__main__':
