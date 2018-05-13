@@ -12,10 +12,11 @@ L1=$1
 L2=$2
 L3=$3
 model=$4
+prefix=$5
 
 DATA_L1=${TF}"/data/${L1}_${L2}"
 DATA_L2=${TF}"/data/${L1}_${L3}"
-NAME="run_${L1}_${L2}-${L3}"
+NAME="run_${prefix}_${L1}_${L2}-${L3}"
 OUT="temp/$NAME"
 
 TEST_SRC_L1=$DATA_L1/test.${L1}
