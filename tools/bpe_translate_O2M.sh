@@ -36,13 +36,13 @@ python translate.py -i $OUT/data --data processed --batchsize 28 --beam_size 5 \
 
 mv $OUT/test/test_l1.out $OUT/test/test_l1.out.bpe
 cat $OUT/test/test_l1.out.bpe | sed -E 's/(@@ )|(@@ ?$)//g' > $OUT/test/test_l1.out
-perl tools/multi-bleu.perl $TEST_TGT_L1 < $OUT/test/test_l1.out > $OUT/test/test_l1.tc.bleu
+# perl tools/multi-bleu.perl $TEST_TGT_L1 < $OUT/test/test_l1.out > $OUT/test/test_l1.tc.bleu
 t2t-bleu --translation=$OUT/test/test_l1.out --reference=$TEST_TGT_L1 > $OUT/test/test_l1.t2t-bleu
 
 # EMA
 mv $OUT/test/test_l1.out.ema $OUT/test/test_l1.out.ema.bpe
 cat $OUT/test/test_l1.out.ema.bpe | sed -E 's/(@@ )|(@@ ?$)//g' > $OUT/test/test_l1.out.ema
-perl tools/multi-bleu.perl $TEST_TGT_L1 < $OUT/test/test_l1.out.ema > $OUT/test/test_l1.tc.bleu.ema
+# perl tools/multi-bleu.perl $TEST_TGT_L1 < $OUT/test/test_l1.out.ema > $OUT/test/test_l1.tc.bleu.ema
 t2t-bleu --translation=$OUT/test/test_l1.out.ema --reference=$TEST_TGT_L1 > $OUT/test/test_l1.t2t-bleu.ema
 
 
@@ -53,11 +53,11 @@ python translate.py -i $OUT/data --data processed --batchsize 28 --beam_size 5 \
 
 mv $OUT/test/test_l2.out $OUT/test/test_l2.out.bpe
 cat $OUT/test/test_l2.out.bpe | sed -E 's/(@@ )|(@@ ?$)//g' > $OUT/test/test_l2.out
-perl tools/multi-bleu.perl $TEST_TGT_L2 < $OUT/test/test_l2.out > $OUT/test/test_l2.tc.bleu
+# perl tools/multi-bleu.perl $TEST_TGT_L2 < $OUT/test/test_l2.out > $OUT/test/test_l2.tc.bleu
 t2t-bleu --translation=$OUT/test/test_l2.out --reference=$TEST_TGT_L2 > $OUT/test/test_l2.t2t-bleu
 
 # EMA
-mv $OUT/test/test_l2.out.ema $OUT/test/test_l2.out.bpe.ema
+mv $OUT/test/test_l2.out.ema $OUT/test/test_l2.out.ema.bpe
 cat $OUT/test/test_l2.out.ema.bpe | sed -E 's/(@@ )|(@@ ?$)//g' > $OUT/test/test_l2.out.ema
-perl tools/multi-bleu.perl $TEST_TGT_L2 < $OUT/test/test_l2.out.ema > $OUT/test/test_l2.tc.bleu.ema
+# perl tools/multi-bleu.perl $TEST_TGT_L2 < $OUT/test/test_l2.out.ema > $OUT/test/test_l2.tc.bleu.ema
 t2t-bleu --translation=$OUT/test/test_l2.out.ema --reference=$TEST_TGT_L2 > $OUT/test/test_l2.t2t-bleu.ema
