@@ -68,7 +68,7 @@ def main():
 
     if args.gpu >= 0:
         model.cuda(args.gpu)
-    print(model)
+    # print(model)
 
     # Translating State Dict
     hyp = TranslateText(model,
@@ -83,7 +83,7 @@ def main():
     model.load_state_dict(checkpoint['state_dict_ema'])
     if args.gpu >= 0:
         model.cuda(args.gpu)
-    print(model)
+    # print(model)
 
     hyp = TranslateText(model,
                         source_data,
