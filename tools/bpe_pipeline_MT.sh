@@ -9,6 +9,9 @@ L1=$1
 L2=$2
 L3=$3
 
+share_sublayer=$4
+attn_share=$5
+
 # update these variables
 NAME="run_MT_${L1}_${L2}-${L3}"
 OUT="temp/$NAME"
@@ -70,7 +73,7 @@ CMD="python $TF/train.py -i $OUT/data --data processed \
 --dev_hyp $OUT/test/valid.out --test_hyp $OUT/test/test.out \
 --model MultiTaskNMT --metric bleu --wbatchsize 2000 --max_decode_len 70 \
 --lang1 __${L2}__ --lang2 __${L3}__ \
---pshare_decoder_param --grad_accumulator_count 2 --share_sublayer kv --attn_share self+source"
+--pshare_decoder_param --grad_accumulator_count 2 --share_sublayer ${share_sublayer} --attn_share ${attn_share}"
 
 echo "Training command :: $CMD"
 eval "$CMD"
