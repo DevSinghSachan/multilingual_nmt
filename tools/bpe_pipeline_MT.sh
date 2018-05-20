@@ -12,8 +12,10 @@ L3=$3
 share_sublayer=$4
 attn_share=$5
 
+prefix="MT_$4_$5"
+
 # update these variables
-NAME="run_MT_${L1}_${L2}-${L3}"
+NAME="run_${prefix}_${L1}_${L2}-${L3}"
 OUT="temp/$NAME"
 
 DATA=${TF}"/data/${L1}_${L2}-${L3}"
@@ -79,4 +81,4 @@ echo "Training command :: $CMD"
 eval "$CMD"
 
 
-bash tools/bpe_translate_O2M.sh ${L1} ${L2} ${L3} MultiTaskNMT MT
+bash tools/bpe_translate_O2M.sh ${L1} ${L2} ${L3} MultiTaskNMT ${prefix}

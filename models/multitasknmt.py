@@ -55,54 +55,6 @@ class MultiTaskNMT(nn.Module):
 
         # Query Linear Layer Weight sharing in transformer encoder
         for i in range(config.layers):
-            # if config.pshare_encoder_param:
-            #     # pass
-            #     # Share Decoder Layer
-            #     # self.model1.decoder.layers[i] = self.model2.decoder.layers[i]
-            #
-            #     # Share Query
-            #     if 'q' in config.share_sublayer:
-            #         if "self" in config.attn_share:
-            #             self.model1.encoder.layers[i].self_attention.W_Q.weight = \
-            #                 self.model2.encoder.layers[i].self_attention.W_Q.weight
-            #         if "source" in config.attn_share:
-            #             self.model1.encoder.layers[i].source_attention.W_Q.weight = \
-            #                 self.model2.encoder.layers[i].source_attention.W_Q.weight
-            #
-            #     # Share Key
-            #     if 'k' in config.share_sublayer:
-            #         if "self" in config.attn_share:
-            #             self.model1.encoder.layers[i].self_attention.W_K.weight = \
-            #                 self.model2.encoder.layers[i].self_attention.W_K.weight
-            #         if "source" in config.attn_share:
-            #             self.model1.encoder.layers[i].source_attention.W_K.weight = \
-            #                 self.model2.encoder.layers[i].source_attention.W_K.weight
-            #
-            #     # Share Value
-            #     if 'v' in config.share_sublayer:
-            #         if "self" in config.attn_share:
-            #             self.model1.encoder.layers[i].self_attention.W_V.weight = \
-            #                 self.model2.encoder.layers[i].self_attention.W_V.weight
-            #         if "source" in config.attn_share:
-            #             self.model1.encoder.layers[i].source_attention.W_V.weight = \
-            #                 self.model2.encoder.layers[i].source_attention.W_V.weight
-            #
-            #     # Share last Finishing Linear Layer
-            #     if 'f' in config.share_sublayer:
-            #         if "self" in config.attn_share:
-            #             self.model1.encoder.layers[i].self_attention.finishing_linear_layer.weight = \
-            #                 self.model2.encoder.layers[i].self_attention.finishing_linear_layer.weight
-            #         if "source" in config.attn_share:
-            #             self.model1.encoder.layers[i].source_attention.finishing_linear_layer.weight = \
-            #                 self.model2.encoder.layers[i].source_attention.finishing_linear_layer.weight
-            #
-            #     # Share the linear layers
-            #     if 'linear' in config.share_sublayer:
-            #         self.model1.encoder.layers[i].feed_forward = \
-            #             self.model2.encoder.layers[i].feed_forward
-            #         self.model1.encoder.layers[i].ln_2 = \
-            #             self.model2.encoder.layers[i].ln_2
-
             if config.pshare_decoder_param:
                 # pass
                 # Share Encoder Layer
