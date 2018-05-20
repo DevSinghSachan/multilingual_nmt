@@ -39,13 +39,13 @@ def work(id, queue):
 def serve(queue):
     # for tuple_ in itertools.product(l1, l2, l3, share_sublayer, attn_share):
     l1, l2, l3 = 'en', 'de', 'tr'
-    tuple_ = (l1, l2, l3, "''", "''")
+    tuple_ = (l1, l2, l3, "XXX", "XXX")
     queue.put(tuple_)
 
     tuple_ = (l1, l2, l3, 'kvqf', 'self+source')
     queue.put(tuple_)
 
-    tuple_ = (l1, l2, l3, 'linear', "''")
+    tuple_ = (l1, l2, l3, 'linear', "XX")
     queue.put(tuple_)
 
     tuple_ = (l1, l2, l3, 'kvqf', 'self')
