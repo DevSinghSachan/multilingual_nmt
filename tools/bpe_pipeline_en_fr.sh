@@ -15,13 +15,13 @@ export PATH=$TF/bin:$PATH
 NAME="run_en_fr_${optimizer}_${lr}_${beta1}_${beta2}_${eps}"
 OUT="/results/temp/$NAME"
 
-DATA=${TF}"/data/en_de"
+DATA=${TF}"/data/en_fr"
 TRAIN_SRC=$DATA/train.en
-TRAIN_TGT=$DATA/train.de
+TRAIN_TGT=$DATA/train.fr
 TEST_SRC=$DATA/test.en
-TEST_TGT=$DATA/test.de
+TEST_TGT=$DATA/test.fr
 VALID_SRC=$DATA/dev.en
-VALID_TGT=$DATA/dev.de
+VALID_TGT=$DATA/dev.fr
 
 BPE="src+tgt" # src, tgt, src+tgt
 BPE_OPS=32000
