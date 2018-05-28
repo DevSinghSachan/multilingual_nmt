@@ -45,7 +45,7 @@ def serve(queue):
     tuple_ = (l1, l2, l3, 'kvqf', 'self+source')
     queue.put(tuple_)
 
-    tuple_ = (l1, l2, l3, 'linear', "XX")
+    tuple_ = (l1, l2, l3, 'linear', "XXX")
     queue.put(tuple_)
 
     tuple_ = (l1, l2, l3, 'kvqf', 'self')
