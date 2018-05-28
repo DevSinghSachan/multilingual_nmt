@@ -12,7 +12,7 @@ export PATH=$TF/bin:$PATH
 #======= EXPERIMENT SETUP ======
 
 # update these variables
-NAME="run_en_fr_${optimizer}_${lr}_${beta1}_${beta2}_${eps}"
+NAME="run_en_de_${optimizer}_${lr}_${beta1}_${beta2}_${eps}"
 OUT="/results/temp/$NAME"
 
 DATA=${TF}"/data/en_de"
