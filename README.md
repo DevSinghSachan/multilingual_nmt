@@ -12,12 +12,12 @@ The overall model architecture is as shown in the figure:
 
 
 The code in this repository implements the following features:
-* Positional Encoding
-* Multi-Head Dot-Product Attention
-* Label Smoothing
-* Warm-up steps based training of Adam Optimizer
-* Shared weights of embedding and softmax layers
-* Beam Search with length normalisation
+* positional encoding
+* Multi-head dot-product attention
+* Label smoothing
+* Warm-up steps based training of Adam optimizer
+* Shared weights of the embedding and softmax layers
+* Beam search with length normalization
 
 ## Software Requirements
 * Python 3.6
@@ -33,10 +33,9 @@ pip install -r requirements.txt
 
 
 ## Usage
-
-### Step 1: Preprocessing:
 Please refer to scripts under "tools" directory for usage examples.
 
+More details will be added soon.
 
 ## Dataset
 
