@@ -6,7 +6,7 @@ NIPS 2017 version: https://papers.nips.cc/paper/7181-attention-is-all-you-need.p
 
 The overall model architecture is as shown in the figure:
 
-![][img/transformer.png =100x20]
+![][transformer]
 
 [transformer]: img/transformer.png "Transformer Model"
 
@@ -67,3 +67,17 @@ Bilingual Translation Tasks
 * Thanks to the suggestions from Graham Neubig [@gneubig](https://github.com/neubig) and Matt Sperber [@msperber](https://github.com/msperber)
 * The code in this repository was originally based and has been adapted from the [Sosuke Kobayashi](https://github.com/soskek)'s implementation in Chainer "https://github.com/soskek/attention_is_all_you_need".
 * Some parts of the code were borrowed from [XNMT](https://github.com/neulab/xnmt/tree/master/xnmt) (based on [Dynet](https://github.com/clab/dynet)) and [OpenNMT-py](https://github.com/OpenNMT/OpenNMT-py) (based on [Pytorch](https://github.com/pytorch/pytorch)).
+
+
+If you find the code helpful, please cite our paper as:
+```
+@InProceedings{devendra2017multilingual,
+  author = 	"Sachan, Devendra
+		and Neubig, Graham,
+  title = 	"Parameter Sharing Methods for Multilingual Self-Attentional Translation Models",
+  booktitle = 	"Proceedings of the Third Conference on Machine Translation",
+  year = 	"2018",
+  publisher = 	"Association for Computational Linguistics",
+  location = 	"Brussels, Belgium"
+}
+```
