@@ -62,16 +62,10 @@ Bilingual Translation Tasks
 | Ro -> En | 37.00 | 35.45 | 34.77 |
 | Nl -> En | 38.59 | 37.71 | 35.81 |
 
-
-## Acknowledgements
-* Thanks to the suggestions from Graham Neubig [@gneubig](https://github.com/neubig) and Matt Sperber [@msperber](https://github.com/msperber)
-* The code in this repository was originally based and has been adapted from the [Sosuke Kobayashi](https://github.com/soskek)'s implementation in Chainer "https://github.com/soskek/attention_is_all_you_need".
-* Some parts of the code were borrowed from [XNMT](https://github.com/neulab/xnmt/tree/master/xnmt) (based on [Dynet](https://github.com/clab/dynet)) and [OpenNMT-py](https://github.com/OpenNMT/OpenNMT-py) (based on [Pytorch](https://github.com/pytorch/pytorch)).
-
-
-If you find the code helpful, please cite our paper as:
+## Citation
+If you find this code useful, please consider citing our paper as:
 ```
-@InProceedings{devendra2017multilingual,
+@InProceedings{devendra2018multilingual,
   author = 	"Sachan, Devendra
 		and Neubig, Graham,
   title = 	"Parameter Sharing Methods for Multilingual Self-Attentional Translation Models",
@@ -81,3 +75,8 @@ If you find the code helpful, please cite our paper as:
   location = 	"Brussels, Belgium"
 }
 ```
+
+## Acknowledgements
+* Thanks to the suggestions from Graham Neubig [@gneubig](https://github.com/neubig) and Matt Sperber [@msperber](https://github.com/msperber)
+* The code in this repository was originally based and has been adapted from the [Sosuke Kobayashi](https://github.com/soskek)'s implementation in Chainer "https://github.com/soskek/attention_is_all_you_need".
+* Some parts of the code were borrowed from [XNMT](https://github.com/neulab/xnmt/tree/master/xnmt) (based on [Dynet](https://github.com/clab/dynet)) and [OpenNMT-py](https://github.com/OpenNMT/OpenNMT-py) (based on [Pytorch](https://github.com/pytorch/pytorch)).
