@@ -1,27 +1,30 @@
-## Attention is All you Need (Transformer)
+### Attention is All you Need (Transformer)
 
-This repository implements the `transformer` model in *pytorch* framework which was introduced in the paper *[Attention is All you Need](https://arxiv.org/abs/1706.03762)* as described in their
+This repository implements the `transformer` model that was introduced in the paper *[Attention is All you Need](https://arxiv.org/abs/1706.03762)* as described in their
 NIPS 2017 version: https://papers.nips.cc/paper/7181-attention-is-all-you-need.pdf
 
+This codebase was also used for the bilingual and multilingual translation experiments for the paper "[Parameter Sharing Methods for Multilingual Self-Attentional Translation Models](https://arxiv.org/abs/1809.00252)"
 
-The overall model architecture is as shown in the figure:
-
+A high-level view of transformer model is as shown:
 ![][transformer]
 
-[transformer]: img/transformer.png "Transformer Model"
+#[transformer]: vis/transformer.png "Transformer Model"
+
+![transformer](https://raw.github.com/DevSinghSachan/multilingual_nmt/master/vis/transformer.png)
 
 
 The code in this repository implements the following features:
 * positional encoding
-* Multi-head dot-product attention
-* Label smoothing
-* Warm-up steps based training of Adam optimizer
-* Shared weights of the embedding and softmax layers
-* Beam search with length normalization
+* multi-head dot-product attention
+* label smoothing
+* warm-up steps based training of Adam optimizer
+* shared weights of the embedding and softmax layers
+* beam search with length normalization
+* exponential moving average checkpoint of parameters
 
 ## Software Requirements
-* Python 3.6
-* Pytorch v0.3.1 
+* python 3.6
+* pytorch v0.3.1 
 * torchtext
 * chainer
 * numpy
@@ -30,7 +33,6 @@ One can install the above packages using the requirements file.
 ```bash
 pip install -r requirements.txt
 ```
-
 
 ## Usage
 Please refer to scripts under "tools" directory for usage examples.
