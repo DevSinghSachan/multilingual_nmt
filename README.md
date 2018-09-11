@@ -6,9 +6,7 @@ NIPS 2017 version: https://papers.nips.cc/paper/7181-attention-is-all-you-need.p
 This codebase was also used for the bilingual and multilingual translation experiments for the paper "[Parameter Sharing Methods for Multilingual Self-Attentional Translation Models](https://arxiv.org/abs/1809.00252)"
 
 A high-level view of transformer model is as shown:
-![][transformer]
 
-#[transformer]: vis/transformer.png "Transformer Model"
 
 ![transformer](https://raw.github.com/DevSinghSachan/multilingual_nmt/master/vis/transformer.png)
 
