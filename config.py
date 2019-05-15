@@ -46,6 +46,17 @@ def get_train_args():
     parser.set_defaults(debug=False)
     parser.add_argument('--grad_accumulator_count', type=int, default=1,
                         help='number of minibatches to accumulate the gradient of')
+    parser.add_argument('--seed', type=int, default=1234)
+
+    # Adding FP16 model training support
+    parser.add_argument('--fp16', action='store_true',
+                        help='Run in pseudo-fp16 mode (fp16 storage fp32 math).')
+    parser.add_argument('--static_loss_scale', type=float, default=1,
+                        help='Static loss scale, positive power of 2 values can '
+                             'improve fp16 convergence.')
+    parser.add_argument('--dynamic_loss_scale', action='store_true',
+                        help='Use dynamic loss scaling.  If supplied, this argument'
+                             ' supersedes --static-loss-scale.')
 
     # Model Options
     parser.add_argument('--n_units', '-u', type=int, default=512,
