@@ -22,6 +22,7 @@ import optimizer as optim
 from torchtext import data
 import utils
 from config import get_train_args
+from fp16_utils import FP16_Optimizer, FP16_Module
 
 
 def init_weights(m):
@@ -158,17 +159,22 @@ def main():
     args = get_train_args()
     print(json.dumps(args.__dict__, indent=4))
 
+    # Set seed value
+    torch.manual_seed(args.seed)
+    random.seed(args.seed)
+    if args.gpu:
+        torch.cuda.manual_seed_all(args.seed)
+
     # Reading the int indexed text dataset
-    train_data = np.load(os.path.join(args.input, args.data + ".train.npy"))
+    train_data = np.load(os.path.join(args.input, args.data + ".train.npy"), allow_pickle=True)
     train_data = train_data.tolist()
-    dev_data = np.load(os.path.join(args.input, args.data + ".valid.npy"))
+    dev_data = np.load(os.path.join(args.input, args.data + ".valid.npy"), allow_pickle=True)
     dev_data = dev_data.tolist()
-    test_data = np.load(os.path.join(args.input, args.data + ".test.npy"))
+    test_data = np.load(os.path.join(args.input, args.data + ".test.npy"), allow_pickle=True)
     test_data = test_data.tolist()
 
     # Reading the vocab file
-    with open(os.path.join(args.input, args.data + '.vocab.pickle'),
-              'rb') as f:
+    with open(os.path.join(args.input, args.data + '.vocab.pickle'), 'rb') as f:
         id2w = pickle.load(f)
 
     args.id2w = id2w
@@ -186,6 +192,14 @@ def main():
     optimizer = optim.TransformerAdamTrainer(model, args)
     ema = ExponentialMovingAverage(decay=0.999)
     ema.register(model.state_dict())
+
+    if args.fp16:
+        model = FP16_Module(model)
+        optimizer = FP16_Optimizer(optimizer,
+                                   static_loss_scale=args.static_loss_scale,
+                                   dynamic_loss_scale=args.dynamic_loss_scale,
+                                   dynamic_loss_args={'init_scale': 2 ** 16},
+                                   verbose=False)
 
     # optionally resume from a checkpoint
     if args.resume:
@@ -235,7 +249,11 @@ def main():
             train_stats.n_src_words += src_words
             in_arrays = utils.seq2seq_pad_concat_convert(train_batch, -1)
             loss, stat = model(*in_arrays)
-            loss.backward()
+            # loss.backward()
+            if args.fp16:
+                optimizer.backward(loss)
+            else:
+                loss.backward()
             num_grad_steps += 1
             if args.debug:
                 norm = utils.grad_norm(model.parameters())
