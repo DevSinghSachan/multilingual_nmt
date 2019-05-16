@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-#!/usr/bin/env bash
-
 TF=$(pwd)
 
 export PATH=$PATH:$TF/bin
@@ -9,9 +7,9 @@ export PATH=$PATH:$TF/bin
 
 # update these variables
 NAME="run_wmt16_de_en"
-OUT="/storage/devendra/temp/$NAME"
+OUT="/root/multilingual_nmt/temp/$NAME"
 
-DATA="/storage/devendra/temp/wmt16_de_en"
+DATA="/root/multilingual_nmt/temp/wmt16_de_en"
 TRAIN_SRC=$DATA/train.tok.clean.en
 TRAIN_TGT=$DATA/train.tok.clean.de
 TEST_SRC=$DATA/newstest2013.tok.en
@@ -66,8 +64,8 @@ CMD="python $TF/train.py -i $OUT/data --data processed \
 --batchsize 30 --tied --beam_size 4 --alpha 0.6 --epoch 20 \
 --layers 6 --multi_heads 8 --gpu 0 --max_decode_len 80 \
 --dev_hyp $OUT/test/valid.out --test_hyp $OUT/test/test.out \
---metric bleu --wbatchsize 1000 --model Transformer \
---grad_accumulator_count 18 --warmup_steps 8000 --eval_steps 20000"
+--metric bleu --wbatchsize 3000 --model Transformer \
+--grad_accumulator_count 5 --warmup_steps 8000 --eval_steps 5000 --fp16 --dynamic_loss_scale"
 
 echo "Training command :: $CMD"
 eval "$CMD"
