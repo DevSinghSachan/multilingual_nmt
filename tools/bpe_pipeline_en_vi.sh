@@ -29,9 +29,7 @@ echo "Output dir = $OUT"
 [ -d $OUT/models ] || mkdir $OUT/models
 [ -d $OUT/test ] || mkdir -p  $OUT/test
 
-
 echo "Step 1a: Preprocess inputs"
-
 
 echo "Learning BPE on source and target combined"
 cat ${TRAIN_SRC} ${TRAIN_TGT} | learn_bpe -s ${BPE_OPS} > $OUT/data/bpe-codes.${BPE_OPS}
@@ -47,8 +45,6 @@ apply_bpe -c $OUT/data/bpe-codes.${BPE_OPS} <  $VALID_TGT > $OUT/data/valid.tgt
 # We dont touch the test References, No BPE on them!
 cp $TEST_TGT $OUT/data/test.tgt
 
-
-#: <<EOF
 echo "Step 1b: Preprocess"
 python ${TF}/preprocess.py -i ${OUT}/data \
       -s-train train.src \
@@ -60,18 +56,16 @@ python ${TF}/preprocess.py -i ${OUT}/data \
       --save_data processed \
       --max_seq_len 70
 
-
 echo "Step 2: Train"
 CMD="python $TF/train.py -i $OUT/data --data processed \
 --model_file $OUT/models/model_$NAME.ckpt --best_model_file $OUT/models/model_best_$NAME.ckpt \
 --batchsize 30 --tied --beam_size 5 --epoch 40 \
 --layers 6 --multi_heads 8 --gpu $GPUARG --max_decode_len 70 \
 --dev_hyp $OUT/test/valid.out --test_hyp $OUT/test/test.out \
---model Transformer --metric bleu --wbatchsize 3000"
+--model Transformer --metric bleu --wbatchsize 4000 --fp16 --dynamic_loss_scale --label_smoothing 0.1"
 
 echo "Training command :: $CMD"
 eval "$CMD"
-
 
 echo "BPE decoding/detokenising target to match with references"
 mv $OUT/test/test.out{,.bpe}
