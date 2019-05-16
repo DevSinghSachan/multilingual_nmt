@@ -212,8 +212,8 @@ class MultiHeadAttention(nn.Module):
         Q.mul_(self.scale_score)
         batch_A = torch.bmm(Q, K.transpose(1, 2).contiguous())
 
-        # batch_A = batch_A.masked_fill(1. - mask, -np.inf) # Works in v0.4
-        batch_A = batch_A.masked_fill(mask == 0, -1e18)
+        batch_A = batch_A.masked_fill(1. - mask, -np.inf) # Works in v0.4
+        # batch_A = batch_A.masked_fill(mask == 0, -1e18)
         batch_A = F.softmax(batch_A, dim=2)
 
         # Replaces 'NaN' with zeros and other values with the original ones
@@ -416,12 +416,12 @@ class Transformer(nn.Module):
         self.register_parameter("Position Encoding Block",
                                 self.pos_enc_block)
         self.embed_dropout = nn.Dropout(config.dropout)
-        self.n_hidden = config.n_units * 4
+        
         self.encoder = Encoder(config.layers,
                                config.n_units,
                                config.multi_heads,
                                config.layer_prepostprocess_dropout,
-                               self.n_hidden,
+                               config.n_hidden,
                                config.attention_dropout,
                                config.relu_dropout)
 
@@ -430,7 +430,7 @@ class Transformer(nn.Module):
                                config.multi_heads,
                                config.layer_prepostprocess_dropout,
                                config.pos_attention,
-                               self.n_hidden,
+                               config.n_hidden,
                                config.attention_dropout,
                                config.relu_dropout)
         self.use_pad_remover = config.use_pad_remover
@@ -530,7 +530,7 @@ class Transformer(nn.Module):
                                        dim=-1)
         rebatch, _ = logits_flat.shape
         concat_t_block = t_block.view(rebatch)
-        weights = (concat_t_block >= 1).float()
+        weights = (concat_t_block >= 1).type(h_block.type())
         n_correct, n_total = utils.accuracy(logits_flat.data,
                                             concat_t_block.data,
                                             ignore_index=0)
@@ -544,7 +544,7 @@ class Transformer(nn.Module):
             concat_t_block = Variable(tmp_, requires_grad=False)
         loss = self.criterion(log_probs_flat,
                               concat_t_block)
-        loss = loss.sum() / (weights.sum() + 1e-13)
+        loss = loss.sum() / (weights.sum() + 1e-8)
         stats = utils.Statistics(loss=loss.data.cpu() * n_total,
                                  n_correct=n_correct,
                                  n_words=n_total)
