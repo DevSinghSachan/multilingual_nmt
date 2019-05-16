@@ -54,7 +54,7 @@ def update_beam_state(outs, total_score, topk, topk_score, eos_id, alpha, x_bloc
     else:
         is_end = torch.max(outs == eos_id, dim=1)[0]
         is_end = is_end.view(-1, 1).expand_as(topk_score)
-        bias = torch.zeros_like(topk_score).type(utils.FLOAT_TYPE)
+        bias = torch.zeros_like(topk_score).type(z_blocks.type())
         bias[:, 1:] = -10000.  # remove ended cands except for a consequence
 
         obj = PolynomialNormalization(alpha=alpha)
@@ -109,7 +109,7 @@ def update_beam_state(outs, total_score, topk, topk_score, eos_id, alpha, x_bloc
 
 def finish_beam(outs, total_score, batchsize, eos_id):
     k = outs.shape[0] // batchsize
-    result_batch = collections.defaultdict(lambda: {'outs': [], 'score': -1e8})
+    result_batch = collections.defaultdict(lambda: {'outs': [], 'score': -np.inf})
     for i in range(batchsize):
         for j in range(k):
             score = total_score[i * k + j]

@@ -18,6 +18,8 @@ class TransformerAdamTrainer(object):
                                           betas=(config.optimizer_adam_beta1,
                                                  config.optimizer_adam_beta2),
                                           eps=config.optimizer_adam_epsilon)
+        self.param_groups = self.optimizer.param_groups
+        self.state = self.optimizer.state
         self.dim = config.n_units
         self.warmup_steps = config.warmup_steps
         self.learning_rate = config.learning_rate

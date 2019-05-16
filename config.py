@@ -61,6 +61,8 @@ def get_train_args():
     # Model Options
     parser.add_argument('--n_units', '-u', type=int, default=512,
                         help='Number of units')
+    parser.add_argument('--n_hidden', type=int, default=2048,
+                        help='Number of FFN units')
     parser.add_argument('--layers', '-l', type=int, default=6,
                         help='Number of layers')
     parser.add_argument('--multi_heads', type=int, default=8,
