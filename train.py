@@ -13,16 +13,22 @@ from torch import nn
 import pickle
 import shutil
 import math
+import logging
 from torch.autograd import Variable
 
 import evaluator
 from models import MultiTaskNMT, Transformer, Shaped, LangShare
 from exp_moving_avg import ExponentialMovingAverage
 import optimizer as optim
+from yogi import Yogi
 from torchtext import data
 import utils
 from config import get_train_args
+<<<<<<< HEAD
 from fp16_utils import FP16_Optimizer, FP16_Module
+=======
+from data_parallel import data_parallel as dp
+>>>>>>> optim
 
 
 def init_weights(m):
@@ -41,6 +47,17 @@ def init_weights(m):
 
         if m.bias is not None:
             m.bias.data.fill_(0.)
+
+
+def get_logger(filename):
+    logger = logging.getLogger('logger')
+    logger.setLevel(logging.DEBUG)
+    logging.basicConfig(format='%(message)s', level=logging.DEBUG)
+    handler = logging.FileHandler(filename)
+    handler.setLevel(logging.DEBUG)
+    handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s: %(message)s'))
+    logging.getLogger().addHandler(handler)
+    return logger
 
 
 def save_checkpoint(state, is_best, model_path_, best_model_path_):
@@ -127,7 +144,7 @@ class CalculateBleu(object):
         self.alpha = alpha
         self.max_sent = max_sent
 
-    def __call__(self):
+    def __call__(self, logger):
         self.model.eval()
         references = []
         hypotheses = []
@@ -155,15 +172,16 @@ class CalculateBleu(object):
             print("> Completed: [ %d / %d ]" % (i, den), end='\r')
 
         bleu = evaluator.BLEUEvaluator().evaluate(references, hypotheses)
-        print('BLEU:', bleu.score_str())
-        print('')
+        logger.info('BLEU: {}'.format(bleu.score_str()))
+        logger.info('')
         return bleu.bleu, hypotheses
 
 
 def main():
     best_score = 0
     args = get_train_args()
-    print(json.dumps(args.__dict__, indent=4))
+    logger = get_logger(args.log_path)
+    logger.info(json.dumps(args.__dict__, indent=4))
 
     # Set seed value
     torch.manual_seed(args.seed)
@@ -193,9 +211,35 @@ def main():
     tally_parameters(model)
     if args.gpu >= 0:
         model.cuda(args.gpu)
-    print(model)
+        # model = data_parallel.DataParallel(model, device_ids=[0, 1]).cuda(0)
+    logger.info(model)
 
-    optimizer = optim.TransformerAdamTrainer(model, args)
+    if args.optimizer == 'Noam':
+        optimizer = optim.TransformerAdamTrainer(model, args)
+    elif args.optimizer == 'Adam':
+        params = filter(lambda p: p.requires_grad, model.parameters())
+        optimizer = torch.optim.Adam(params,
+                                     lr=args.learning_rate,
+                                     betas=(args.optimizer_adam_beta1,
+                                            args.optimizer_adam_beta2),
+                                     eps=args.optimizer_adam_epsilon)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,
+                                                               mode='max',
+                                                               factor=0.7,
+                                                               patience=7,
+                                                               verbose=True)
+    elif args.optimizer == 'Yogi':
+        params = filter(lambda p: p.requires_grad, model.parameters())
+        optimizer = Yogi(params,
+                         lr=args.learning_rate,
+                         betas=(args.optimizer_adam_beta1,
+                                args.optimizer_adam_beta2),
+                         eps=args.optimizer_adam_epsilon)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,
+                                                               mode='max',
+                                                               factor=0.7,
+                                                               patience=7,
+                                                               verbose=True)
 
     if args.fp16:
         model = FP16_Module(model)
@@ -204,32 +248,39 @@ def main():
                                    dynamic_loss_scale=args.dynamic_loss_scale,
                                    dynamic_loss_args={'init_scale': 2 ** 16},
                                    verbose=False)
-    ema = ExponentialMovingAverage(decay=0.999)
+        
+    ema = ExponentialMovingAverage(decay=args.ema_decay)
     ema.register(model.state_dict())
 
     # optionally resume from a checkpoint
     if args.resume:
         if os.path.isfile(args.model_file):
-            print("=> loading checkpoint '{}'".format(args.model_file))
+            logger.info("=> loading checkpoint '{}'".format(args.model_file))
             checkpoint = torch.load(args.model_file)
             args.start_epoch = checkpoint['epoch']
             best_score = checkpoint['best_score']
             model.load_state_dict(checkpoint['state_dict'])
             optimizer.load_state_dict(checkpoint['optimizer'])
-            print("=> loaded checkpoint '{}' (epoch {})".
+            logger.info("=> loaded checkpoint '{}' (epoch {})".
                   format(args.model_file, checkpoint['epoch']))
         else:
-            print("=> no checkpoint found at '{}'".format(args.model_file))
+            logger.info("=> no checkpoint found at '{}'".format(args.model_file))
 
     src_data, trg_data = list(zip(*train_data))
     total_src_words = len(list(itertools.chain.from_iterable(src_data)))
     total_trg_words = len(list(itertools.chain.from_iterable(trg_data)))
     iter_per_epoch = (total_src_words + total_trg_words) // (2 * args.wbatchsize)
-    print('Approximate number of iter/epoch =', iter_per_epoch)
+    logger.info('Approximate number of iter/epoch = {}'.format(iter_per_epoch))
     time_s = time()
 
     global_steps = 0
     num_grad_steps = 0
+    if args.grad_norm_for_yogi and args.optimizer == 'Yogi':
+        args.start_epoch = -1
+        l2_norm = 0.0
+        parameters = list(filter(lambda p: p.requires_grad is True, model.parameters()))
+        n_params = sum([p.nelement() for p in parameters])
+
     for epoch in range(args.start_epoch, args.epoch):
         random.shuffle(train_data)
         train_iter = data.iterator.pool(train_data,
@@ -254,18 +305,39 @@ def main():
             report_stats.n_src_words += src_words
             train_stats.n_src_words += src_words
             in_arrays = utils.seq2seq_pad_concat_convert(train_batch, -1)
+<<<<<<< HEAD
             loss, stat = model(*in_arrays)
             # loss.backward()
             if args.fp16:
                 optimizer.backward(loss)
             else:
                 loss.backward()
+=======
+            if len(args.multi_gpu) > 1:
+                loss_tuple, stat_tuple = zip(*dp(model, in_arrays, device_ids=args.multi_gpu))
+                n_total = sum([obj.n_words for obj in stat_tuple])
+                n_correct = sum([obj.n_correct for obj in stat_tuple])
+                loss = 0
+                for l_, s_ in zip(loss_tuple, stat_tuple):
+                    loss += l_ * s_.n_words
+                loss /= n_total
+                stat = utils.Statistics(loss=loss.data.cpu() * n_total,
+                                         n_correct=n_correct,
+                                         n_words=n_total)
+            else:
+                loss, stat = model(*in_arrays)
+
+            loss.backward()
+            if epoch == -1 and args.grad_norm_for_yogi and args.optimizer == 'Yogi':
+                l2_norm += (utils.grad_norm(model.parameters()) ** 2) / n_params
+                continue
+>>>>>>> optim
             num_grad_steps += 1
             if args.debug:
                 norm = utils.grad_norm(model.parameters())
                 grad_norm += norm
                 if global_steps % args.report_every == 0:
-                    print("> Gradient Norm: %1.4f" % (grad_norm / (num_steps + 1)))
+                    logger.info("> Gradient Norm: %1.4f" % (grad_norm / (num_steps + 1)))
             if args.grad_accumulator_count == 1:
                 optimizer.step()
                 ema.apply(model.state_dict(keep_vars=True))
@@ -290,14 +362,23 @@ def main():
                 for dev_batch in dev_iter:
                     model.eval()
                     in_arrays = utils.seq2seq_pad_concat_convert(dev_batch, -1)
-                    _, stat = model(*in_arrays)
+                    if len(args.multi_gpu) > 1:
+                        _, stat_tuple = zip(*dp(model, in_arrays, device_ids=args.multi_gpu))
+                        n_total = sum([obj.n_words for obj in stat_tuple])
+                        n_correct = sum([obj.n_correct for obj in stat_tuple])
+                        dev_loss = sum([obj.loss for obj in stat_tuple])
+                        stat = utils.Statistics(loss=dev_loss,
+                                                n_correct=n_correct,
+                                                n_words=n_total)
+                    else:
+                        _, stat = model(*in_arrays)
                     valid_stats.update(stat)
 
-                print('Train perplexity: %g' % train_stats.ppl())
-                print('Train accuracy: %g' % train_stats.accuracy())
+                logger.info('Train perplexity: %g' % train_stats.ppl())
+                logger.info('Train accuracy: %g' % train_stats.accuracy())
 
-                print('Validation perplexity: %g' % valid_stats.ppl())
-                print('Validation accuracy: %g' % valid_stats.accuracy())
+                logger.info('Validation perplexity: %g' % valid_stats.ppl())
+                logger.info('Validation accuracy: %g' % valid_stats.accuracy())
 
                 if args.metric == "accuracy":
                     score = valid_stats.accuracy()
@@ -308,7 +389,7 @@ def main():
                                              batch=args.batchsize // 4,
                                              beam_size=args.beam_size,
                                              alpha=args.alpha,
-                                             max_sent=args.max_sent_eval)()
+                                             max_sent=args.max_sent_eval)(logger)
 
                 # Threshold Global Steps to save the model
                 if global_steps > 8000:
@@ -321,37 +402,66 @@ def main():
                         'best_score': best_score,
                         'optimizer': optimizer.state_dict(),
                         'opts': args,
-                    }, is_best,
-                        args.model_file,
+                    },  is_best,
+                        args.model_file + '.{}'.format(epoch + 1),
                         args.best_model_file)
+
+                if args.optimizer == 'Adam' or args.optimizer == 'Yogi':
+                    scheduler.step(score)
+
+        if epoch == -1 and args.grad_norm_for_yogi and args.optimizer == 'Yogi':
+            optimizer.v_init = l2_norm / (num_steps + 1)
+            logger.info("Initializing Yogi Optimizer (v_init = {})".format(optimizer.v_init))
 
     # BLEU score on Dev and Test Data
     checkpoint = torch.load(args.best_model_file)
-    print("=> loaded checkpoint '{}' (epoch {}, best score {})".
+    logger.info("=> loaded checkpoint '{}' (epoch {}, best score {})".
           format(args.best_model_file,
                  checkpoint['epoch'],
                  checkpoint['best_score']))
     model.load_state_dict(checkpoint['state_dict'])
 
-    print('Dev Set BLEU Score')
+    logger.info('Dev Set BLEU Score')
     _, dev_hyp = CalculateBleu(model,
                                dev_data,
                                'Dev Bleu',
                                batch=args.batchsize // 4,
                                beam_size=args.beam_size,
                                alpha=args.alpha,
-                               max_decode_len=args.max_decode_len)()
+                               max_decode_len=args.max_decode_len)(logger)
     save_output(dev_hyp, id2w, args.dev_hyp)
 
-    print('Test Set BLEU Score')
+    logger.info('Test Set BLEU Score')
     _, test_hyp = CalculateBleu(model,
                                 test_data,
                                 'Test Bleu',
                                 batch=args.batchsize // 4,
                                 beam_size=args.beam_size,
                                 alpha=args.alpha,
-                                max_decode_len=args.max_decode_len)()
+                                max_decode_len=args.max_decode_len)(logger)
     save_output(test_hyp, id2w, args.test_hyp)
+
+    # Loading EMA state dict
+    model.load_state_dict(checkpoint['state_dict_ema'])
+    logger.info('Dev Set BLEU Score')
+    _, dev_hyp = CalculateBleu(model,
+                               dev_data,
+                               'Dev Bleu',
+                               batch=args.batchsize // 4,
+                               beam_size=args.beam_size,
+                               alpha=args.alpha,
+                               max_decode_len=args.max_decode_len)(logger)
+    save_output(dev_hyp, id2w, args.dev_hyp + '.ema')
+
+    logger.info('Test Set BLEU Score')
+    _, test_hyp = CalculateBleu(model,
+                                test_data,
+                                'Test Bleu',
+                                batch=args.batchsize // 4,
+                                beam_size=args.beam_size,
+                                alpha=args.alpha,
+                                max_decode_len=args.max_decode_len)(logger)
+    save_output(test_hyp, id2w, args.test_hyp + '.ema')
 
 
 if __name__ == '__main__':

@@ -49,15 +49,15 @@ curl -o ${OUTPUT_DIR_DATA}/test.tgz \
 # Extract everything
 echo "Extracting all files..."
 mkdir -p "${OUTPUT_DIR_DATA}/europarl-v7-de-en"
-tar -xvzf "${OUTPUT_DIR_DATA}/europarl-v7-de-en.tgz" -C "${OUTPUT_DIR_DATA}/europarl-v7-de-en"
+tar --no-same-owner -xvzf "${OUTPUT_DIR_DATA}/europarl-v7-de-en.tgz" -C "${OUTPUT_DIR_DATA}/europarl-v7-de-en"
 mkdir -p "${OUTPUT_DIR_DATA}/common-crawl"
-tar -xvzf "${OUTPUT_DIR_DATA}/common-crawl.tgz" -C "${OUTPUT_DIR_DATA}/common-crawl"
+tar --no-same-owner -xvzf "${OUTPUT_DIR_DATA}/common-crawl.tgz" -C "${OUTPUT_DIR_DATA}/common-crawl"
 mkdir -p "${OUTPUT_DIR_DATA}/nc-v11"
-tar -xvzf "${OUTPUT_DIR_DATA}/nc-v11.tgz" -C "${OUTPUT_DIR_DATA}/nc-v11"
+tar --no-same-owner -xvzf "${OUTPUT_DIR_DATA}/nc-v11.tgz" -C "${OUTPUT_DIR_DATA}/nc-v11"
 mkdir -p "${OUTPUT_DIR_DATA}/dev"
-tar -xvzf "${OUTPUT_DIR_DATA}/dev.tgz" -C "${OUTPUT_DIR_DATA}/dev"
+tar --no-same-owner -xvzf "${OUTPUT_DIR_DATA}/dev.tgz" -C "${OUTPUT_DIR_DATA}/dev"
 mkdir -p "${OUTPUT_DIR_DATA}/test"
-tar -xvzf "${OUTPUT_DIR_DATA}/test.tgz" -C "${OUTPUT_DIR_DATA}/test"
+tar --no-same-owner -xvzf "${OUTPUT_DIR_DATA}/test.tgz" -C "${OUTPUT_DIR_DATA}/test"
 
 # Concatenate Training data
 cat "${OUTPUT_DIR_DATA}/europarl-v7-de-en/europarl-v7.de-en.en" \
