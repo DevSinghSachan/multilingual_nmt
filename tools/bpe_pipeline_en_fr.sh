@@ -12,17 +12,16 @@ export PATH=$TF/bin:$PATH
 #======= EXPERIMENT SETUP ======
 
 # update these variables
-NAME="run_en_vi_${optimizer}_${lr}_${beta1}_${beta2}_${eps}"
+NAME="run_en_fr_${optimizer}_${lr}_${beta1}_${beta2}_${eps}"
 OUT="/results/temp/$NAME"
-# OUT="temp/$NAME"
 
-DATA=${TF}"/data/en_vi"
+DATA=${TF}"/data/en_fr"
 TRAIN_SRC=$DATA/train.en
-TRAIN_TGT=$DATA/train.vi
-TEST_SRC=$DATA/tst2013.en
-TEST_TGT=$DATA/tst2013.vi
-VALID_SRC=$DATA/tst2012.en
-VALID_TGT=$DATA/tst2012.vi
+TRAIN_TGT=$DATA/train.fr
+TEST_SRC=$DATA/test.en
+TEST_TGT=$DATA/test.fr
+VALID_SRC=$DATA/dev.en
+VALID_TGT=$DATA/dev.fr
 
 BPE="src+tgt" # src, tgt, src+tgt
 BPE_OPS=32000
@@ -36,7 +35,9 @@ echo "Output dir = $OUT"
 [ -d $OUT/models ] || mkdir $OUT/models
 [ -d $OUT/test ] || mkdir -p  $OUT/test
 
+
 echo "Step 1a: Preprocess inputs"
+
 
 echo "Learning BPE on source and target combined"
 cat ${TRAIN_SRC} ${TRAIN_TGT} | learn_bpe -s ${BPE_OPS} > $OUT/data/bpe-codes.${BPE_OPS}
@@ -52,6 +53,8 @@ apply_bpe -c $OUT/data/bpe-codes.${BPE_OPS} <  $VALID_TGT > $OUT/data/valid.tgt
 # We dont touch the test References, No BPE on them!
 cp $TEST_TGT $OUT/data/test.tgt
 
+
+#: <<EOF
 echo "Step 1b: Preprocess"
 python ${TF}/preprocess.py -i ${OUT}/data \
       -s-train train.src \
@@ -63,6 +66,7 @@ python ${TF}/preprocess.py -i ${OUT}/data \
       --save_data processed \
       --max_seq_len 70
 
+
 echo "Step 2: Train"
 CMD="python $TF/train.py -i $OUT/data --data processed \
 --model_file $OUT/models/model_$NAME.ckpt --best_model_file $OUT/models/model_best_$NAME.ckpt \
@@ -71,10 +75,11 @@ CMD="python $TF/train.py -i $OUT/data --data processed \
 --dev_hyp $OUT/test/valid.out --test_hyp $OUT/test/test.out \
 --model Transformer --metric bleu --wbatchsize 3000 --log_path $OUT/${NAME}.log \
 --optimizer ${optimizer} --learning_rate ${lr} --optimizer_adam_beta1 ${beta1} \
---optimizer_adam_beta2 ${beta2} --optimizer_adam_epsilon ${eps} --fp16 --dynamic_loss_scale --label_smoothing 0.1"
+--optimizer_adam_beta2 ${beta2} --optimizer_adam_epsilon ${eps}"
 
 echo "Training command :: $CMD"
 eval "$CMD"
+
 
 echo "BPE decoding/detokenising target to match with references"
 mv $OUT/test/test.out{,.bpe}

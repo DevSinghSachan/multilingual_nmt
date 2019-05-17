@@ -59,6 +59,8 @@ def get_train_args():
                              ' supersedes --static-loss-scale.')
 
     # Model Options
+    parser.add_argument('--multi_gpu', nargs='+', default=[0], type=int,
+                        help='gpu ids')
     parser.add_argument('--n_units', '-u', type=int, default=512,
                         help='Number of units')
     parser.add_argument('--n_hidden', type=int, default=2048,
@@ -91,6 +93,11 @@ def get_train_args():
     parser.set_defaults(use_pad_remover=True)
 
     # Optimizer Options
+    parser.add_argument('--optimizer', type=str, default='Noam',
+                        help='Optimizer choice (Noam|Adam|Yogi)')
+    parser.add_argument('--grad_norm_for_yogi', dest='grad_norm_for_yogi',
+                        action='store_true',
+                        help='grad norm for Yogi')
     parser.add_argument('--warmup_steps', type=float, default=16000,
                         help='warmup steps in Adam Optimizer Training')
     parser.add_argument('--learning_rate', default=0.2, type=float,
@@ -103,6 +110,8 @@ def get_train_args():
                         help='Beta2 for Adam training')
     parser.add_argument('--optimizer_adam_epsilon', default=1e-9, type=float,
                         help='Epsilon for Adam training')
+    parser.add_argument('--ema_decay', default=0.999, type=float,
+                        help='EMA decay')
 
     # Evaluation Options
     parser.add_argument('--eval_steps', default=1000, type=int,
@@ -128,6 +137,8 @@ def get_train_args():
                         help='path to save dev set hypothesis')
     parser.add_argument('--test_hyp', default='results/test.out', type=str,
                         help='path to save test set hypothesis')
+    parser.add_argument('--log_path', default='results/log.txt', type=str,
+                        help='logger path')
 
     args = parser.parse_args()
     return args
