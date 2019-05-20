@@ -321,11 +321,13 @@ def main():
             else:
                 loss, stat = model(*in_arrays)
 
-            loss.backward()
+            if args.fp16:
+                optimizer.backward(loss)
+            else:
+                loss.backward()
             if epoch == -1 and args.grad_norm_for_yogi and args.optimizer == 'Yogi':
                 l2_norm += (utils.grad_norm(model.parameters()) ** 2) / n_params
                 continue
->>>>>>> optim
             num_grad_steps += 1
             if args.debug:
                 norm = utils.grad_norm(model.parameters())
