@@ -24,11 +24,8 @@ from yogi import Yogi
 from torchtext import data
 import utils
 from config import get_train_args
-<<<<<<< HEAD
 from fp16_utils import FP16_Optimizer, FP16_Module
-=======
 from data_parallel import data_parallel as dp
->>>>>>> optim
 
 
 def init_weights(m):
@@ -305,14 +302,11 @@ def main():
             report_stats.n_src_words += src_words
             train_stats.n_src_words += src_words
             in_arrays = utils.seq2seq_pad_concat_convert(train_batch, -1)
-<<<<<<< HEAD
             loss, stat = model(*in_arrays)
-            # loss.backward()
             if args.fp16:
                 optimizer.backward(loss)
             else:
                 loss.backward()
-=======
             if len(args.multi_gpu) > 1:
                 loss_tuple, stat_tuple = zip(*dp(model, in_arrays, device_ids=args.multi_gpu))
                 n_total = sum([obj.n_words for obj in stat_tuple])
