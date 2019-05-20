@@ -309,11 +309,11 @@ def main():
                 loss.backward()
             if len(args.multi_gpu) > 1:
                 loss_tuple, stat_tuple = zip(*dp(model, in_arrays, device_ids=args.multi_gpu))
-                n_total = sum([obj.n_words for obj in stat_tuple])
-                n_correct = sum([obj.n_correct for obj in stat_tuple])
+                n_total = sum([obj.n_words.item() for obj in stat_tuple])
+                n_correct = sum([obj.n_correct.item() for obj in stat_tuple])
                 loss = 0
                 for l_, s_ in zip(loss_tuple, stat_tuple):
-                    loss += l_ * s_.n_words
+                    loss += l_ * s_.n_words.item()
                 loss /= n_total
                 stat = utils.Statistics(loss=loss.data.cpu() * n_total,
                                          n_correct=n_correct,
