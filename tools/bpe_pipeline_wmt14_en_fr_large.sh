@@ -6,10 +6,10 @@ export PATH=$PATH:$TF/bin
 #======= EXPERIMENT SETUP ======
 
 # update these variables
-NAME="run_wmt16_en_fr"
-OUT="/root/multilingual_nmt/temp/$NAME"
+NAME="run_wmt14_en_fr_large"
+OUT="temp/$NAME"
 
-DATA="${HOME}/enfr/wmt14_enfr"
+DATA="data/wmt14_enfr"
 TRAIN_SRC=$DATA/train.en
 TRAIN_TGT=$DATA/train.fr
 TEST_SRC=$DATA/valid.en
@@ -19,7 +19,7 @@ VALID_TGT=$DATA/test.fr
 
 BPE="src+tgt" # src, tgt, src+tgt
 BPE_OPS=32000
-
+GPUARG="0"
 #====== EXPERIMENT BEGIN ======
 
 echo "Output dir = $OUT"
@@ -27,7 +27,7 @@ echo "Output dir = $OUT"
 [ -d $OUT/data ] || mkdir -p $OUT/data
 [ -d $OUT/models ] || mkdir $OUT/models
 [ -d $OUT/test ] || mkdir -p  $OUT/test
-
+<<COMMENT
 echo "Step 1a: Preprocess inputs"
 
 echo "Learning BPE on source and target combined"
@@ -55,16 +55,17 @@ python ${TF}/preprocess.py -i ${OUT}/data \
       -t-test test.tgt \
       --save_data processed \
       --max_seq_len 80
+COMMENT
 
 echo "Step 2: Train"
-CMD="python $TF/train.py -i $OUT/data --data processed \
+CMD="python -m pdb $TF/train.py -i $OUT/data --data processed \
 --model_file $OUT/models/model_$NAME.ckpt --best_model_file $OUT/models/model_best_$NAME.ckpt \
---batchsize 30 --tied --beam_size 4 --alpha 0.6 --epoch 20 \
---layers 6 --multi_heads 16 --gpu 0 --max_decode_len 80 \
+--batchsize 30 --tied --beam_size 4 --alpha 0.6 --epoch 10 \
+--layers 6 --multi_heads 16 --gpu $GPUARG --max_decode_len 80 \
 --dev_hyp $OUT/test/valid.out --test_hyp $OUT/test/test.out \
 --metric bleu --wbatchsize 3000 --model Transformer \
---grad_accumulator_count 5 --warmup_steps 8000 --eval_steps 5000 --fp16 --dynamic_loss_scale \
---n_units 1024 --n_hidden 4096"
+--grad_accumulator_count 8 --warmup_steps 8000 --eval_steps 5000 --fp16 --dynamic_loss_scale --label_smoothing 0.1 \
+--n_units 1024 --n_hidden 4096 --log_path $OUT/${NAME}.log"
 
 echo "Training command :: $CMD"
 eval "$CMD"
