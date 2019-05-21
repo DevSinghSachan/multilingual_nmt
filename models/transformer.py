@@ -56,7 +56,6 @@ class ScaledEmbedding(nn.Embedding):
         # This works well too
         # self.embed_word.weight.data.uniform_(-3. / self.num_embeddings,
         #                                      3. / self.num_embeddings)
-
         self.weight.data = truncated_normal(shape=(self.num_embeddings,
                                                    self.embedding_dim),
                                             stddev=1.0 / math.sqrt(self.embedding_dim))
@@ -413,8 +412,6 @@ class Transformer(nn.Module):
                                                           config.n_units)
         self.pos_enc_block = nn.Parameter(torch.FloatTensor(pos_enc_block),
                                           requires_grad=False)
-        self.register_parameter("Position Encoding Block",
-                                self.pos_enc_block)
         self.embed_dropout = nn.Dropout(config.dropout)
         
         self.encoder = Encoder(config.layers,
@@ -440,12 +437,13 @@ class Transformer(nn.Module):
                                           config.n_units,
                                           padding_idx=0)
         if config.tied:
-            # self.affine = self.tied_linear
             self.affine = nn.Linear(config.n_units,
                                     config.n_vocab,
                                     bias=True)
             self.affine.weight = self.embed_word.weight
-
+            stdv = 1. / math.sqrt(config.n_units)
+            self.affine.bias.data.uniform_(-stdv, stdv)
+            # self.affine = self.tied_linear
             # self.affine_bias = nn.Parameter(torch.Tensor(config.n_vocab))
             # stdv = 1. / math.sqrt(config.n_units)
             # self.affine_bias.data.uniform_(-stdv, stdv)

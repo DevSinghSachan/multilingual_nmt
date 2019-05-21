@@ -208,7 +208,6 @@ def main():
     tally_parameters(model)
     if args.gpu >= 0:
         model.cuda(args.gpu)
-        # model = data_parallel.DataParallel(model, device_ids=[0, 1]).cuda(0)
     logger.info(model)
 
     if args.optimizer == 'Noam':
@@ -302,11 +301,6 @@ def main():
             report_stats.n_src_words += src_words
             train_stats.n_src_words += src_words
             in_arrays = utils.seq2seq_pad_concat_convert(train_batch, -1)
-            loss, stat = model(*in_arrays)
-            if args.fp16:
-                optimizer.backward(loss)
-            else:
-                loss.backward()
             if len(args.multi_gpu) > 1:
                 loss_tuple, stat_tuple = zip(*dp(model, in_arrays, device_ids=args.multi_gpu))
                 n_total = sum([obj.n_words.item() for obj in stat_tuple])
@@ -360,8 +354,8 @@ def main():
                     in_arrays = utils.seq2seq_pad_concat_convert(dev_batch, -1)
                     if len(args.multi_gpu) > 1:
                         _, stat_tuple = zip(*dp(model, in_arrays, device_ids=args.multi_gpu))
-                        n_total = sum([obj.n_words for obj in stat_tuple])
-                        n_correct = sum([obj.n_correct for obj in stat_tuple])
+                        n_total = sum([obj.n_words.item() for obj in stat_tuple])
+                        n_correct = sum([obj.n_correct.item() for obj in stat_tuple])
                         dev_loss = sum([obj.loss for obj in stat_tuple])
                         stat = utils.Statistics(loss=dev_loss,
                                                 n_correct=n_correct,

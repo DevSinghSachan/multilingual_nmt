@@ -1,15 +1,9 @@
-### Attention is All you Need (Transformer)
+### Transformer
 
-This repository implements the `transformer` model that was introduced in the paper *[Attention is All you Need](https://arxiv.org/abs/1706.03762)* as described in their
+This repository implements the `Transformer` model that was introduced in the paper *[Attention is All you Need](https://arxiv.org/abs/1706.03762)* as described in their
 NIPS 2017 version: https://papers.nips.cc/paper/7181-attention-is-all-you-need.pdf
 
 This codebase was also used for the bilingual and multilingual translation experiments for the paper "[Parameter Sharing Methods for Multilingual Self-Attentional Translation Models](https://arxiv.org/abs/1809.00252)"
-
-A high-level view of transformer model is as shown:
-
-
-![transformer](https://raw.github.com/DevSinghSachan/multilingual_nmt/master/vis/transformer.png)
-
 
 The code in this repository implements the following features:
 * positional encoding
@@ -20,14 +14,8 @@ The code in this repository implements the following features:
 * beam search with length normalization
 * exponential moving average checkpoint of parameters
 
-## Software Requirements
-* python 3.6
-* pytorch v0.3.1 
-* torchtext
-* chainer
-* numpy
-
-One can install the above packages using the requirements file.
+## Requirements
+One can install the required packages from the requirements file.
 ```bash
 pip install -r requirements.txt
 ```
@@ -61,21 +49,3 @@ Bilingual Translation Tasks
 | Ro -> En | 37.00 | 35.45 | 34.77 |
 | Nl -> En | 38.59 | 37.71 | 35.81 |
 
-## Citation
-If you find this code useful, please consider citing our paper as:
-```
-@InProceedings{devendra2018multilingual,
-  author = 	"Sachan, Devendra
-		and Neubig, Graham,
-  title = 	"Parameter Sharing Methods for Multilingual Self-Attentional Translation Models",
-  booktitle = 	"Proceedings of the Third Conference on Machine Translation",
-  year = 	"2018",
-  publisher = 	"Association for Computational Linguistics",
-  location = 	"Brussels, Belgium"
-}
-```
-
-## Acknowledgements
-* Thanks to the suggestions from Graham Neubig [@gneubig](https://github.com/neubig) and Matt Sperber [@msperber](https://github.com/msperber)
-* The code in this repository was originally based and has been adapted from the [Sosuke Kobayashi](https://github.com/soskek)'s implementation in Chainer "https://github.com/soskek/attention_is_all_you_need".
-* Some parts of the code were borrowed from [XNMT](https://github.com/neulab/xnmt/tree/master/xnmt) (based on [Dynet](https://github.com/clab/dynet)) and [OpenNMT-py](https://github.com/OpenNMT/OpenNMT-py) (based on [Pytorch](https://github.com/pytorch/pytorch)).
