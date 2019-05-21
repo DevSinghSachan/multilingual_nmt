@@ -4,7 +4,7 @@ TF=$(pwd)
 export PATH=$PATH:${TF}/bin
 
 NAME="run_wmt16_de_en"
-OUT="results/wmt/$NAME"
+OUT="temp/$NAME"
 
 model_file=$1
 
