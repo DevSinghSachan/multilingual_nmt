@@ -7,7 +7,7 @@ import json
 import torch
 from tqdm import tqdm
 
-from models import MultiTaskNMT, Transformer, Shaped, LangShare
+from models import MultiTaskNMT, Transformer
 import utils
 from torch.autograd import Variable
 import preprocess

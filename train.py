@@ -17,10 +17,9 @@ import logging
 from torch.autograd import Variable
 
 import evaluator
-from models import MultiTaskNMT, Transformer, Shaped, LangShare
+from models import MultiTaskNMT, Transformer
 from exp_moving_avg import ExponentialMovingAverage
-import optimizer as optim
-from yogi import Yogi
+from optimizer import NoamAdamTrainer, Yogi
 from torchtext import data
 import utils
 from config import get_train_args
@@ -211,7 +210,7 @@ def main():
     logger.info(model)
 
     if args.optimizer == 'Noam':
-        optimizer = optim.TransformerAdamTrainer(model, args)
+        optimizer = NoamAdamTrainer(model, args)
     elif args.optimizer == 'Adam':
         params = filter(lambda p: p.requires_grad, model.parameters())
         optimizer = torch.optim.Adam(params,
@@ -393,7 +392,7 @@ def main():
                         'optimizer': optimizer.state_dict(),
                         'opts': args,
                     },  is_best,
-                        args.model_file + '.{}'.format(epoch + 1),
+                        args.model_file,
                         args.best_model_file)
 
                 if args.optimizer == 'Adam' or args.optimizer == 'Yogi':

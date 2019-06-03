@@ -3,7 +3,7 @@ import numpy as np
 import torch
 
 
-class TransformerAdamTrainer(object):
+class NoamAdamTrainer(object):
     """
     Proposed in the paper "Attention is all you need"
     (https://papers.nips.cc/paper/7181-attention-is-all-you-need.pdf)
