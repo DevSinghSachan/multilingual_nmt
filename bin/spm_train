@@ -7,9 +7,17 @@ parser = ArgumentParser(description='SentencePiece Train')
 parser.add_argument('--input', type=str)
 parser.add_argument('--vocab_size', type=str)
 parser.add_argument('--model_prefix', type=str)
+parser.add_argument('--input_sentence_size', type=int)
+parser.add_argument('--shuffle_input_sentence', type=str)
 args = parser.parse_args()
 
-spm.SentencePieceTrainer.Train('--input={} --model_prefix={} --vocab_size={}'.format(args.input,
-                                                                                     args.model_prefix,
-                                                                                     args.vocab_size))
+spm.SentencePieceTrainer.Train('--input={} '
+                               '--model_prefix={} '
+                               '--vocab_size={} '
+                               '--input_sentence_size={} '
+                               '--shuffle_input_sentence={}'.format(args.input,
+                                                        args.model_prefix,
+                                                        args.vocab_size,
+                                                        args.input_sentence_size,
+                                                        args.shuffle_input_sentence))
 print(args)
