@@ -27,6 +27,25 @@ More details will be added soon.
 
 ## Dataset
 
+1. Download the TED talks dataset as:
+```bash
+bash download_teddata.sh
+``` 
+This command will download, decompress, and will save the train, dev, and test splits of the TED talks under `data` directory.
+
+2. One can use the script `ted_reader.py` to specify language pairs for both bilingual/multilingual translation tasks.
+- For bilingual/multilingual translation, just specify the source and target languages as
+```python
+python ted_reader.py -s ja en zh fr ro -t en zh fr ro ja
+``` 
+- For multilingual translation, by default the training data will consist of the cartesian product of all the source and target language pairs. 
+- If all possible combinations of the language pairs are not needed, then just use the option of `-ncp` 
+```python
+python ted_reader.py -s ja en zh fr ro -t en zh fr ro ja -ncp
+```
+- Above command will only create training data for the corresponding language pairs, i.e. [(ja, en), (en, zh), (zh, fr), (fr, ro), (fr, ja)]
+
+
 Dataset Statistics included in `data` directory are:
 
 | Dataset |Train|Dev|Test|
@@ -48,4 +67,3 @@ Bilingual Translation Tasks
 | De -> En | 37.33 | 36.96 | 35.46 |
 | Ro -> En | 37.00 | 35.45 | 34.77 |
 | Nl -> En | 38.59 | 37.71 | 35.81 |
-
