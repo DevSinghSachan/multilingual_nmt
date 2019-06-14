@@ -48,18 +48,12 @@ class MultiTaskNMT(nn.Module):
         # Embedding Layer weight sharing
         self.model1.embed_word.weight = self.model2.embed_word.weight
 
-        # if config.pshare_encoder_param:
-        #     self.model1.decoder = self.model2.decoder
         if config.pshare_decoder_param:
             self.model1.encoder = self.model2.encoder
 
         # Query Linear Layer Weight sharing in transformer encoder
         for i in range(config.layers):
             if config.pshare_decoder_param:
-                # pass
-                # Share Encoder Layer
-                # self.model1.encoder.layers[i] = self.model2.encoder.layers[i]
-
                 # Share Decoder Params
                 # Share Query
                 if 'q' in config.share_sublayer:
@@ -108,7 +102,6 @@ class MultiTaskNMT(nn.Module):
                     self.model1.decoder.layers[i].ln_3 = \
                         self.model2.decoder.layers[i].ln_3
 
-
     def forward(self, *args):
         # Identify the row indexes corresponding to lang1 and lang2
         lang1_input = index_select_train(self.lang1, args)
@@ -153,14 +146,3 @@ class MultiTaskNMT(nn.Module):
         concat = list(zip(index, id_list))
         _, output = zip(*sorted(concat, key=lambda x: x[0]))
         return list(output)
-
-
-
-
-
-
-
-
-
-
-

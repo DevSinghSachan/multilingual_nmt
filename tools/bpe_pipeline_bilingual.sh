@@ -1,30 +1,23 @@
 #!/usr/bin/env bash
 
 TF=$(pwd)
-
 export PATH=$TF/bin:$PATH
-#======= EXPERIMENT SETUP ======
 
 L1=$1
 L2=$2
 
-# update these variables
 NAME="run_${L1}_${L2}"
 OUT="temp/$NAME"
-
 DATA=${TF}"/data/${L1}_${L2}"
-TRAIN_SRC=$DATA/train.${L1}
-TRAIN_TGT=$DATA/train.${L2}
-TEST_SRC=$DATA/test.${L1}
-TEST_TGT=$DATA/test.${L2}
-VALID_SRC=$DATA/dev.${L1}
-VALID_TGT=$DATA/dev.${L2}
+TRAIN_SRC=$DATA/train.src
+TRAIN_TGT=$DATA/train.tgt
+TEST_SRC=$DATA/test.src
+TEST_TGT=$DATA/test.tgt
+VALID_SRC=$DATA/dev.src
+VALID_TGT=$DATA/dev.tgt
 
 BPE_OPS=32000
 GPUARG=0
-
-#====== EXPERIMENT BEGIN ======
-
 
 echo "Output dir = $OUT"
 [ -d $OUT ] || mkdir -p $OUT
@@ -48,7 +41,6 @@ apply_bpe -c $OUT/data/bpe-codes.${BPE_OPS} <  $VALID_TGT > $OUT/data/valid.tgt
 # We dont touch the test References, No BPE on them!
 cp $TEST_TGT $OUT/data/test.tgt
 
-
 echo "Step 1b: Preprocess"
 python ${TF}/preprocess.py -i ${OUT}/data \
       -s-train train.src \
@@ -70,15 +62,6 @@ CMD="python $TF/train.py -i $OUT/data --data processed \
 
 echo "Training command :: $CMD"
 eval "$CMD"
-
-# select a model with high accuracy and low perplexity
-model=$OUT/models/model_$NAME.ckpt
-echo "Chosen Model = $model"
-if [[ -z "$model" ]]; then
-    echo "Model not found. Looked in $OUT/models/"
-    exit 1
-fi
-
 
 echo "BPE decoding/detokenising target to match with references"
 mv $OUT/test/test.out{,.bpe}

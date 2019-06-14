@@ -10,7 +10,10 @@ L2=$2
 L3=$3
 
 share_sublayer=$4
+# options are: q,k,v,f,linear
+
 attn_share=$5
+# options are: self, source
 
 prefix="MT_$4_$5"
 
@@ -80,5 +83,5 @@ CMD="python $TF/train.py -i $OUT/data --data processed \
 echo "Training command :: $CMD"
 eval "$CMD"
 
-
 bash tools/bpe_translate_O2M.sh ${L1} ${L2} ${L3} MultiTaskNMT ${prefix}
+# bash tools/bpe_translate_O2M.sh en es pt MultiTaskNMT MT
