@@ -17,11 +17,6 @@ One can install the required packages from the requirements file.
 pip install -r requirements.txt
 ```
 
-## Usage
-Please refer to scripts under "tools" directory for usage examples.
-
-More details will be added soon.
-
 ## Dataset
 
 * Download the TED talks dataset as:
@@ -46,18 +41,17 @@ python ted_reader.py -s ja en zh fr ro -t en zh fr ro ja -ncp
 
 ## Instructions
 For convenience, there are some example shell scripts under tools directory
-* Bilingual translation
+* Bilingual Translation (NS)
 ```bash
 bash tools/bpe_pipeline_bilingual.sh src_lang tgt_lang
 ```
 
-* Multilingual translation
-- Fully Shared (FS)
+- Fully Shared Multilingual Translation (FS)
 ```bash
 bash tools/bpe_pipeline_fully_shared_multilingual.sh src_lang tgt_lang1 tgt_lang2 
 ```
 
-- Partial Sharing (PS)
+- Partial Sharing Multilingual Translation (PS)
 ```bash
 bash tools/bpe_pipeline_MT.sh src_lang tgt_lang1 tgt_lang2 share_sublayer share_attn
 ```
@@ -94,7 +88,7 @@ bash tools/bpe_pipeline_MT.sh src_lang tgt_lang1 tgt_lang2 k,q self,source
 * **Multilingual Translation Tasks**
 
 | Method | En->De+Tr | En->De+Ja | En->Ro+Fr | En->De+Nl |
-| :----: |:-------:|:------:|:-------:|:----:|
+| :---- |:-------:|:------:|:-------:|:----:|
 |        | ->De  ->Tr | ->De ->Ja | ->Ro ->Fr | ->De ->Nl |
 | GNMT NS        |27.01 16.07|27.01 16.62|24.38 40.50|27.01 30.64|
 | GNMT FS        |29.07 18.09|28.24 17.33|26.41 42.46|28.52 31.72|
