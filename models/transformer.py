@@ -211,7 +211,7 @@ class MultiHeadAttention(nn.Module):
         Q.mul_(self.scale_score)
         batch_A = torch.bmm(Q, K.transpose(1, 2).contiguous())
 
-        batch_A = batch_A.masked_fill(1. - mask, -np.inf) # Works in v0.4
+        batch_A = batch_A.masked_fill(~mask, -np.inf) # Works in v0.4
         # batch_A = batch_A.masked_fill(mask == 0, -1e18)
         batch_A = F.softmax(batch_A, dim=2)
 
@@ -514,7 +514,7 @@ class Transformer(nn.Module):
         history_mask = history_mask.astype(np.int32)
         history_mask = Variable(torch.ByteTensor(history_mask).type(utils.BYTE_TYPE),
                                 requires_grad=False)
-        return history_mask
+        return history_mask.to(torch.bool)
 
     def tied_linear(self, h):
         return F.linear(h, self.embed_word.weight, self.affine_bias)
